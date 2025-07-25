@@ -3,13 +3,17 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Deque;
+import java.util.ArrayDeque; // For Deque (stack-like behavior)
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class HeapSortVisualizer extends JFrame {
     int[] array;
     int arraySize;
     int heapSize;
     JPanel treePanel, arrayPanel, explanationPanel;
-    JButton startButton, resetButton, customInputButton;
+    JButton startButton, resetButton, customInputButton, backButton; // Added backButton
     JSlider speedSlider;
     JLabel speedLabel, statusLabel, stepLabel;
     JTextArea explanationArea;
@@ -19,32 +23,62 @@ public class HeapSortVisualizer extends JFrame {
     boolean isAnimating = false;
     boolean isBuildingHeap = true;
     boolean isExtracting = false;
-    int currentBuildIndex;
-    int currentExtractIndex;
-    int heapifyIndex = -1;
-    int leftChild = -1;
-    int rightChild = -1;
-    int largestIndex = -1;
-    boolean isSwapping = false;
+    int currentBuildIndex; // Index of the root of the subtree to heapify in build phase
+
+    // Highlighting variables
+    int heapifyIndex = -1; // Node currently being heapified (root of current heapify operation)
+    int leftChild = -1;    // Left child being compared
+    int rightChild = -1;   // Right child being compared
+    int largestIndex = -1; // Index of the largest element found in current heapify step
     int swapIndex1 = -1;
     int swapIndex2 = -1;
-    int animationPhase = 0; // 0: building heap, 1: extracting elements
     int currentStep = 0;
     int totalSteps = 0;
+
+    // NEW: Stack for managing iterative heapify calls
+    private Deque<HeapifyCall> heapifyStack;
 
     // Tree visualization variables
     List<TreeNode> treeNodes;
 
     // Colors
     Color defaultColor = new Color(240, 248, 255);
-    Color heapifyColor = new Color(231, 76, 60);
-    Color compareColor = new Color(255, 193, 7);
-    Color swapColor = new Color(46, 204, 113);
-    Color sortedColor = new Color(52, 152, 219);
-    Color maxColor = new Color(155, 89, 182);
-    Color borderColor = new Color(44, 62, 80);
-    Color treeLineColor = new Color(108, 117, 125);
+    Color heapifyColor = new Color(231, 76, 60); // Reddish for current heapify root
+    Color compareColor = new Color(255, 193, 7); // Yellowish for elements being compared
+    Color swapColor = new Color(46, 204, 113); // Greenish for elements being swapped
+    Color sortedColor = new Color(52, 152, 219); // Bluish for sorted elements
+    Color maxColor = new Color(155, 89, 182); // Purplish for the largest element found
+    Color borderColor = new Color(44, 62, 80); // Dark gray for borders
+    Color treeLineColor = new Color(108, 117, 125); // Gray for tree lines
 
+    // NEW: Class to represent a single "call" to maxHeapify in the iterative process
+    class HeapifyCall {
+        int index; // The root of the current subtree being heapified
+        int largest; // The index of the largest element found so far in this call
+        int state; // Internal state for this specific heapify call
+        int leftChildIdx;
+        int rightChildIdx;
+
+        // States for 'state' variable
+        static final int INIT = 0;
+        static final int COMPARE_LEFT = 1;
+        static final int COMPARE_RIGHT = 2;
+        static final int CHECK_SWAP = 3;
+        static final int PERFORM_SWAP = 4;
+        static final int RECURSE_CHILD = 5; // Indicates a child needs to be heapified
+        static final int WAITING_FOR_CHILD = 6; // NEW STATE: Parent waiting for child heapify to finish
+        static final int DONE = 7; // This heapify call is complete
+
+        HeapifyCall(int index) {
+            this.index = index;
+            this.largest = index;
+            this.state = INIT;
+            this.leftChildIdx = 2 * index + 1;
+            this.rightChildIdx = 2 * index + 2;
+        }
+    }
+
+    // NEW: TreeNode class definition (was missing)
     class TreeNode {
         int value;
         int index;
@@ -68,6 +102,7 @@ public class HeapSortVisualizer extends JFrame {
     void initializeGUI() {
         setTitle("🌳 Heap Sort Visualizer - Max Heap Tree Structure");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize the window
         setLayout(new BorderLayout(10, 10));
 
         getContentPane().setBackground(new Color(248, 249, 250));
@@ -87,21 +122,22 @@ public class HeapSortVisualizer extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 80));
 
-        JLabel titleLabel = new JLabel("🌳 HEAP SORT VISUALIZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("HEAP SORT VISUALIZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         headerPanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Control panel
+        // Control panel (buttons and speed slider)
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         controlPanel.setBackground(new Color(248, 249, 250));
 
-        startButton = createStyledButton("▶ Start Heap Sort", new Color(46, 204, 113));
-        resetButton = createStyledButton("🔄 Reset", new Color(52, 152, 219));
-        customInputButton = createStyledButton("⚙ Custom Input", new Color(155, 89, 182));
+        startButton = createStyledButton("Start Heap Sort", new Color(46, 204, 113));
+        resetButton = createStyledButton("Reset", new Color(52, 152, 219));
+        customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
+        backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
 
-        speedLabel = new JLabel("⚡ Animation Speed:");
+        speedLabel = new JLabel("Animation Speed:");
         speedLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         speedLabel.setForeground(new Color(44, 62, 80));
 
@@ -120,24 +156,63 @@ public class HeapSortVisualizer extends JFrame {
         controlPanel.add(startButton);
         controlPanel.add(resetButton);
         controlPanel.add(customInputButton);
+        controlPanel.add(backButton);
         controlPanel.add(Box.createHorizontalStrut(30));
         controlPanel.add(speedLabel);
         controlPanel.add(speedSlider);
         controlPanel.add(Box.createHorizontalStrut(30));
         controlPanel.add(stepLabel);
 
-        // Main visualization panel
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBackground(new Color(248, 249, 250));
+        // Right panel for status and explanation
+        JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
+        rightPanel.setBackground(new Color(248, 249, 250));
+        rightPanel.setPreferredSize(new Dimension(400, 0)); // Fixed width, flexible height
+
+        statusLabel = new JLabel("<html><center>🎯 Ready to sort!<br>Click 'Start Heap Sort' to begin</center></html>", JLabel.CENTER);
+        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        statusLabel.setForeground(new Color(44, 62, 80));
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
+        statusLabel.setOpaque(true);
+        statusLabel.setBackground(Color.WHITE);
+
+        explanationPanel = new JPanel(new BorderLayout());
+        explanationPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
+                "Algorithm Explanation",
+                0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(46, 204, 113)
+        ));
+        explanationPanel.setBackground(Color.WHITE);
+
+        // MODIFIED: Reduced rows for explanationArea to make it smaller
+        explanationArea = new JTextArea(8, 30);
+        explanationArea.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        explanationArea.setBackground(Color.WHITE);
+        explanationArea.setForeground(new Color(44, 62, 80));
+        explanationArea.setLineWrap(true);
+        explanationArea.setWrapStyleWord(true);
+        explanationArea.setEditable(false);
+        explanationArea.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane explanationScrollPane = new JScrollPane(explanationArea);
+        explanationScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        explanationPanel.add(explanationScrollPane, BorderLayout.CENTER);
+
+        rightPanel.add(statusLabel, BorderLayout.NORTH);
+        rightPanel.add(explanationPanel, BorderLayout.CENTER);
+
+        // Left visuals panel (Tree and Array)
+        JPanel leftVisualsPanel = new JPanel();
+        leftVisualsPanel.setLayout(new BoxLayout(leftVisualsPanel, BoxLayout.Y_AXIS)); // Stack vertically
+        leftVisualsPanel.setBackground(new Color(248, 249, 250));
 
         // Tree panel
+        // MODIFIED: Increased preferred height for treePanel to make it bigger
         treePanel = new JPanel() {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // Gradient background
                 GradientPaint gradient = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(),
                         new Color(248, 249, 250));
                 g2d.setPaint(gradient);
@@ -146,15 +221,16 @@ public class HeapSortVisualizer extends JFrame {
                 drawHeapTree(g2d);
             }
         };
-        treePanel.setPreferredSize(new Dimension(800, 400));
+        treePanel.setPreferredSize(new Dimension(800, 450)); // Increased height for tree
         treePanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(106, 90, 205), 2),
-                "🌳 Max Heap Tree Structure",
+                "Max Heap Tree Structure",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(106, 90, 205)
         ));
 
         // Array panel
         arrayPanel = new JPanel() {
+            @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
@@ -167,58 +243,48 @@ public class HeapSortVisualizer extends JFrame {
 
                 drawArray(g2d);
             }
+
+            @Override // Override getPreferredSize to calculate dynamic width
+            public Dimension getPreferredSize() {
+                int boxWidth = 60;
+                int spacing = 10;
+                int padding = 20; // Padding on both sides
+
+                // Calculate total width needed for all boxes and spacing
+                int totalContentWidth = arraySize * (boxWidth + spacing) - spacing;
+
+                // Return the actual content width needed, without constraining it to 800px
+                return new Dimension(totalContentWidth + 2 * padding, 150);
+            }
         };
-        arrayPanel.setPreferredSize(new Dimension(800, 150));
         arrayPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "📊 Array Representation",
+                "Array Representation",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(52, 152, 219)
         ));
 
-        mainPanel.add(treePanel, BorderLayout.CENTER);
-        mainPanel.add(arrayPanel, BorderLayout.SOUTH);
+        // Wrap arrayPanel in a JScrollPane
+        JScrollPane arrayScrollPane = new JScrollPane(arrayPanel);
+        arrayScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER); // Only horizontal needed
+        arrayScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        arrayScrollPane.setBorder(BorderFactory.createEmptyBorder()); // Remove default scroll pane border
+        // MODIFIED: Removed fixed preferred width for arrayScrollPane to allow it to expand
+        arrayScrollPane.setPreferredSize(new Dimension(0, 200)); // Set width to 0 to allow horizontal expansion
 
-        // Status and explanation panel
-        JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
-        rightPanel.setBackground(new Color(248, 249, 250));
-        rightPanel.setPreferredSize(new Dimension(400, 0));
+        leftVisualsPanel.add(treePanel);
+        leftVisualsPanel.add(arrayScrollPane);
 
-        statusLabel = new JLabel("<html><center>🎯 Ready to sort!<br>Click 'Start Heap Sort' to begin</center></html>", JLabel.CENTER);
-        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        statusLabel.setForeground(new Color(44, 62, 80));
-        statusLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-        statusLabel.setOpaque(true);
-        statusLabel.setBackground(Color.WHITE);
+        // Create a JSplitPane for the main visualization area (left visuals vs right panel)
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftVisualsPanel, rightPanel);
+        // MODIFIED: Increased resizeWeight to give more space to the left visuals (tree + array)
+        mainSplitPane.setResizeWeight(0.8); // Left side takes 80% of the space
+        mainSplitPane.setDividerSize(10);
+        mainSplitPane.setBorder(BorderFactory.createEmptyBorder()); // Remove default split pane border
 
-        explanationPanel = new JPanel(new BorderLayout());
-        explanationPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
-                "📚 Algorithm Explanation",
-                0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(46, 204, 113)
-        ));
-        explanationPanel.setBackground(Color.WHITE);
-
-        explanationArea = new JTextArea(20, 30);
-        explanationArea.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        explanationArea.setBackground(Color.WHITE);
-        explanationArea.setForeground(new Color(44, 62, 80));
-        explanationArea.setLineWrap(true);
-        explanationArea.setWrapStyleWord(true);
-        explanationArea.setEditable(false);
-        explanationArea.setMargin(new Insets(10, 10, 10, 10));
-
-        JScrollPane scrollPane = new JScrollPane(explanationArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        explanationPanel.add(scrollPane, BorderLayout.CENTER);
-
-        rightPanel.add(statusLabel, BorderLayout.NORTH);
-        rightPanel.add(explanationPanel, BorderLayout.CENTER);
-
-        // Layout
+        // Add components to the JFrame
         add(headerPanel, BorderLayout.NORTH);
-        add(controlPanel, BorderLayout.CENTER);
-        add(mainPanel, BorderLayout.WEST);
-        add(rightPanel, BorderLayout.EAST);
+        add(controlPanel, BorderLayout.SOUTH); // Control panel at the bottom
+        add(mainSplitPane, BorderLayout.CENTER); // The split pane takes the center
 
         // Event listeners
         startButton.addActionListener(new ActionListener() {
@@ -239,6 +305,22 @@ public class HeapSortVisualizer extends JFrame {
             }
         });
 
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (animationTimer != null) animationTimer.stop();
+                dispose(); // Close this window
+            }
+        });
+
+        speedSlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                int delay = 1200 - (speedSlider.getValue() * 100);
+                if (animationTimer != null) {
+                    animationTimer.setDelay(delay);
+                }
+            }
+        });
+
         animationTimer = new Timer(800, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 performHeapSortStep();
@@ -246,8 +328,8 @@ public class HeapSortVisualizer extends JFrame {
         });
 
         updateInitialExplanation();
-        pack();
-        setLocationRelativeTo(null);
+        pack(); // Pack the frame to its preferred size
+        setLocationRelativeTo(null); // Center the frame on screen
         setVisible(true);
     }
 
@@ -283,30 +365,36 @@ public class HeapSortVisualizer extends JFrame {
         calculateTotalSteps();
         resetSortingVariables();
         buildTreeNodes();
+        arrayPanel.revalidate(); // Revalidate arrayPanel to update preferred size
+        arrayPanel.repaint();
         repaint();
     }
 
     void calculateTotalSteps() {
-        // Estimate steps: build heap + extract elements
-        totalSteps = arraySize + (arraySize - 1) * 3; // Rough estimate
+        // A more generous estimate for granular steps in Heap Sort
+        // This is an initial estimate for the progress bar. The final totalSteps will be
+        // set to currentStep when the algorithm completes for perfect X/X display.
+        totalSteps = arraySize * 25; // Increased from 15 to 25 per element for more buffer
     }
 
     void resetSortingVariables() {
         isAnimating = false;
         isBuildingHeap = true;
         isExtracting = false;
-        currentBuildIndex = arraySize / 2 - 1;
-        currentExtractIndex = arraySize - 1;
+        currentBuildIndex = arraySize / 2 - 1; // Start from the last non-leaf node
+        heapSize = arraySize; // Reset heap size to full array size
+
+        // Clear highlighting variables
         heapifyIndex = -1;
         leftChild = -1;
         rightChild = -1;
         largestIndex = -1;
-        isSwapping = false;
         swapIndex1 = -1;
         swapIndex2 = -1;
-        animationPhase = 0;
         currentStep = 0;
-        heapSize = arraySize;
+
+        // NEW: Initialize heapify stack
+        heapifyStack = new ArrayDeque<>();
 
         statusLabel.setText("<html><center>🎯 Ready to sort!<br>Click 'Start Heap Sort' to begin</center></html>");
         stepLabel.setText("Step: 0 / " + totalSteps);
@@ -317,7 +405,7 @@ public class HeapSortVisualizer extends JFrame {
             animationTimer.stop();
         }
         generateRandomArray(arraySize);
-        startButton.setText("▶ Start Heap Sort");
+        startButton.setText("Start Heap Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
     }
@@ -363,8 +451,9 @@ public class HeapSortVisualizer extends JFrame {
                 array = new int[arraySize];
                 for (int i = 0; i < arraySize; i++) {
                     array[i] = Integer.parseInt(elements[i]);
-                    if (array[i] < 1 || array[i] > 999) {
-                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between 1 and 999");
+                    // FIX: Allow 0 and negative numbers, adjust range
+                    if (array[i] < -999 || array[i] > 999) {
+                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between -999 and 999");
                         return;
                     }
                 }
@@ -372,6 +461,8 @@ public class HeapSortVisualizer extends JFrame {
                 calculateTotalSteps();
                 resetSortingVariables();
                 buildTreeNodes();
+                arrayPanel.revalidate(); // Revalidate arrayPanel to update preferred size
+                arrayPanel.repaint();
                 repaint();
 
             } catch (NumberFormatException e) {
@@ -383,8 +474,11 @@ public class HeapSortVisualizer extends JFrame {
     void startHeapSort() {
         if (isAnimating) return;
 
+        // Reset state to ensure a clean start if not already reset
+        resetSortingVariables();
+
         isAnimating = true;
-        startButton.setText("⏸ Sorting...");
+        startButton.setText("Sorting...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
 
@@ -393,7 +487,7 @@ public class HeapSortVisualizer extends JFrame {
         animationTimer.start();
 
         statusLabel.setText("<html><center>🚀 Building Max Heap...<br>Phase 1 of 2</center></html>");
-        updateExplanation("🎬 HEAP SORT STARTED!\n\n" +
+        updateExplanation("HEAP SORT STARTED!\n\n" +
                 "Heap Sort works in two main phases:\n\n" +
                 "PHASE 1: BUILD MAX HEAP\n" +
                 "We'll convert the array into a max heap where each parent node is larger than its children. " +
@@ -414,113 +508,238 @@ public class HeapSortVisualizer extends JFrame {
             performExtractStep();
         }
 
-        buildTreeNodes();
+        buildTreeNodes(); // Rebuild tree nodes to reflect current state for drawing
         repaint();
     }
 
     void performBuildHeapStep() {
-        if (currentBuildIndex < 0) {
-            // Finished building heap
-            isBuildingHeap = false;
-            isExtracting = true;
-            currentExtractIndex = arraySize - 1;
-            statusLabel.setText("<html><center>✅ Max Heap Built!<br>🔄 Extracting Elements...</center></html>");
-            updateExplanation("✅ MAX HEAP CONSTRUCTION COMPLETED!\n\n" +
-                    "The array has been successfully converted into a max heap! " +
-                    "Notice how every parent node is now larger than its children.\n\n" +
-                    "PHASE 2: EXTRACTING ELEMENTS\n" +
-                    "Now we'll repeatedly:\n" +
-                    "1. Swap the root (maximum) with the last element\n" +
-                    "2. Reduce heap size\n" +
-                    "3. Heapify the root to maintain heap property\n\n" +
-                    "This will sort the array in ascending order.");
-            return;
+        // If the heapify stack is empty, it means the previous heapify operation is done
+        // or we are starting a new one for the next element in the build phase.
+        if (heapifyStack.isEmpty()) {
+            currentBuildIndex--; // Move to the next parent node to heapify
+            if (currentBuildIndex < 0) {
+                // Finished building heap
+                isBuildingHeap = false;
+                isExtracting = true;
+                // currentExtractIndex is now implicitly heapSize - 1
+                clearHighlights(); // Clear any remaining highlights
+                statusLabel.setText("<html><center>✅ Max Heap Built!<br>🔄 Extracting Elements...</center></html>");
+                updateExplanation("MAX HEAP CONSTRUCTION COMPLETED!\n\n" +
+                        "The array has been successfully converted into a max heap! " +
+                        "Notice how every parent node is now larger than its children.\n\n" +
+                        "PHASE 2: EXTRACTING ELEMENTS\n" +
+                        "Now we'll repeatedly:\n" +
+                        "1. Swap the root (maximum) with the last element\n" +
+                        "2. Reduce heap size\n" +
+                        "3. Heapify the root to maintain heap property\n\n" +
+                        "This will sort the array in ascending order.");
+                return;
+            }
+            // Start a new heapify operation for the currentBuildIndex
+            heapifyStack.push(new HeapifyCall(currentBuildIndex));
+            updateExplanation("🔧 Starting to heapify node " + currentBuildIndex + " (value: " + array[currentBuildIndex] + ").");
         }
 
-        // Heapify current node
-        heapifyIndex = currentBuildIndex;
-        maxHeapify(heapifyIndex);
-        currentBuildIndex--;
-
-        statusLabel.setText("<html><center>🔧 Heapifying node " + heapifyIndex +
-                "<br>Value: " + array[heapifyIndex] + "</center></html>");
-        updateExplanation("🔧 HEAPIFYING NODE " + heapifyIndex + "\n\n" +
-                "Current node value: " + array[heapifyIndex] + "\n" +
-                "Checking if this node satisfies the max heap property (parent ≥ children).\n\n" +
-                "We compare with left child" + (leftChild < heapSize ? " (" + array[leftChild] + ")" : " (none)") +
-                " and right child" + (rightChild < heapSize ? " (" + array[rightChild] + ")" : " (none)") + ".\n\n" +
-                (largestIndex != heapifyIndex ?
-                        "Heap property violated! Swapping " + array[heapifyIndex] + " with " + array[largestIndex] + "." :
-                        "Heap property satisfied! No swap needed.") +
-                "\n\nRemaining nodes to heapify: " + (currentBuildIndex + 1));
+        // Process one step of the current heapify operation from the stack
+        processHeapifyStepFromStack();
     }
 
     void performExtractStep() {
-        if (currentExtractIndex <= 0) {
-            // Sorting complete
-            animationTimer.stop();
-            isAnimating = false;
-            startButton.setText("✅ Completed");
-            startButton.setBackground(new Color(46, 204, 113));
-            statusLabel.setText("<html><center>🎉 Heap Sort Complete!<br>Array is now sorted!</center></html>");
-            updateExplanation("🎉 HEAP SORT COMPLETED!\n\n" +
-                    "Congratulations! The heap sort algorithm has successfully sorted the array.\n\n" +
-                    "SUMMARY:\n" +
-                    "• Phase 1: Built a max heap from the unsorted array\n" +
-                    "• Phase 2: Repeatedly extracted the maximum element\n" +
-                    "• Result: Array sorted in ascending order\n\n" +
-                    "Time Complexity: O(n log n)\n" +
-                    "Space Complexity: O(1)\n" +
-                    "Heap sort is an in-place, comparison-based sorting algorithm that guarantees " +
-                    "O(n log n) performance in all cases!");
+        // If the heapify stack is empty, it means the previous heapify operation is done
+        // or we are starting a new extraction step.
+        if (heapifyStack.isEmpty()) {
+            if (heapSize <= 1) { // Sorting complete (heapSize 1 means only one element left, which is sorted)
+                // Sorting complete
+                completeAnalysis(); // Call completeAnalysis to finalize state
+                return;
+            }
+
+            // Perform the swap (root with last element of current heap)
+            swapIndex1 = 0;
+            swapIndex2 = heapSize - 1; // Last element of current heap
+            int temp = array[0];
+            array[0] = array[heapSize - 1];
+            array[heapSize - 1] = temp;
+
+            statusLabel.setText("<html><center>🔄 Extracted: " + array[heapSize - 1] +
+                    "<br>Swapped with root</center></html>");
+            updateExplanation("🔄 EXTRACTING MAXIMUM ELEMENT\n\n" +
+                    "Extracted maximum: " + array[heapSize - 1] + " (now at index " + (heapSize - 1) + ")\n" +
+                    "This element is now in its final sorted position.\n\n" +
+                    "PROCESS:\n" +
+                    "1. Swapped root (" + array[heapSize - 1] + ") with last heap element (" + array[0] + ")\n" +
+                    "2. Reduced heap size from " + heapSize + " to " + (heapSize - 1) + "\n" +
+                    "3. Now preparing to heapify the new root to restore max heap property.\n\n" +
+                    "Remaining elements to sort: " + (heapSize - 1));
+
+            // Reduce heap size
+            heapSize--;
+
+            // Start heapify from root (index 0)
+            heapifyStack.push(new HeapifyCall(0));
+        }
+
+        // Process one step of the current heapify operation from the stack
+        processHeapifyStepFromStack();
+    }
+
+    // This method processes one step of the maxHeapify operation using the stack
+    void processHeapifyStepFromStack() {
+        if (heapifyStack.isEmpty()) {
+            clearHighlights(); // Ensure no highlights if stack is empty
             return;
         }
 
-        // Swap root with last element
-        swapIndex1 = 0;
-        swapIndex2 = currentExtractIndex;
-        int temp = array[0];
-        array[0] = array[currentExtractIndex];
-        array[currentExtractIndex] = temp;
+        HeapifyCall currentCall = heapifyStack.peek(); // Get the current call without removing it
+        heapifyIndex = currentCall.index; // Highlight the current root being heapified
+        largestIndex = currentCall.largest; // Update largestIndex for highlighting
 
-        statusLabel.setText("<html><center>🔄 Extracted: " + array[currentExtractIndex] +
-                "<br>Swapped with root</center></html>");
-        updateExplanation("🔄 EXTRACTING MAXIMUM ELEMENT\n\n" +
-                "Extracted maximum: " + array[currentExtractIndex] + "\n" +
-                "This element is now in its final sorted position at index " + currentExtractIndex + ".\n\n" +
-                "PROCESS:\n" +
-                "1. Swapped root (" + array[currentExtractIndex] + ") with last heap element (" + array[0] + ")\n" +
-                "2. Reduced heap size from " + heapSize + " to " + (heapSize - 1) + "\n" +
-                "3. Now heapifying the new root to restore max heap property\n\n" +
-                "Remaining elements to sort: " + currentExtractIndex);
+        int i = currentCall.index;
+        int l = currentCall.leftChildIdx;
+        int r = currentCall.rightChildIdx;
 
-        // Reduce heap size and heapify root
-        heapSize--;
-        currentExtractIndex--;
-        heapifyIndex = 0;
-        maxHeapify(0);
+        // Clear comparison/swap highlights from previous step, unless we are in a swap state
+        if (currentCall.state != HeapifyCall.PERFORM_SWAP) {
+            leftChild = -1;
+            rightChild = -1;
+            swapIndex1 = -1;
+            swapIndex2 = -1;
+        }
+
+        switch (currentCall.state) {
+            case HeapifyCall.INIT:
+                currentCall.largest = i;
+                largestIndex = i; // Update largestIndex for highlighting
+                currentCall.state = HeapifyCall.COMPARE_LEFT;
+                updateExplanation("Heapifying node " + i + " (value: " + array[i] + "). Initializing comparison.");
+                break;
+
+            case HeapifyCall.COMPARE_LEFT:
+                leftChild = l; // Highlight left child
+                if (l < heapSize) {
+                    updateExplanation("Comparing " + array[i] + " (parent) with " + array[l] + " (left child).");
+                    if (array[l] > array[currentCall.largest]) {
+                        currentCall.largest = l;
+                        largestIndex = l; // Update largestIndex for highlighting
+                        updateExplanation("Left child (" + array[l] + ") is larger than current largest (" + array[i] + ").");
+                    }
+                } else {
+                    updateExplanation("No left child for node " + i + ".");
+                }
+                currentCall.state = HeapifyCall.COMPARE_RIGHT;
+                break;
+
+            case HeapifyCall.COMPARE_RIGHT:
+                rightChild = r; // Highlight right child
+                if (r < heapSize) {
+                    updateExplanation("Comparing " + array[currentCall.largest] + " (current largest) with " + array[r] + " (right child).");
+                    if (array[r] > array[currentCall.largest]) {
+                        currentCall.largest = r;
+                        largestIndex = r; // Update largestIndex for highlighting
+                        updateExplanation("Right child (" + array[r] + ") is larger than current largest (" + array[currentCall.largest] + ").");
+                    }
+                } else {
+                    updateExplanation("No right child for node " + i + ".");
+                }
+                currentCall.state = HeapifyCall.CHECK_SWAP;
+                break;
+
+            case HeapifyCall.CHECK_SWAP:
+                if (currentCall.largest != i) {
+                    // A swap is needed. Prepare for the swap animation.
+                    swapIndex1 = i;
+                    swapIndex2 = currentCall.largest;
+                    updateExplanation("Heap property violated! Preparing to swap " + array[i] + " with " + array[currentCall.largest] + ".");
+                    currentCall.state = HeapifyCall.PERFORM_SWAP;
+                } else {
+                    // No swap needed, this heapify operation is done.
+                    updateExplanation("Node " + i + " is already a max heap. No swap needed.");
+                    currentCall.state = HeapifyCall.DONE;
+                    heapifyStack.pop(); // This call is done, remove from stack
+                    clearHighlights(); // Clear highlights for this completed heapify
+                }
+                break;
+
+            case HeapifyCall.PERFORM_SWAP:
+                // Perform the actual swap
+                int temp = array[i];
+                array[i] = array[currentCall.largest];
+                array[currentCall.largest] = temp;
+                updateExplanation("Swapped " + array[swapIndex1] + " and " + array[swapIndex2] + ".");
+                swapIndex1 = -1; // Clear swap highlights
+                swapIndex2 = -1;
+                currentCall.state = HeapifyCall.RECURSE_CHILD;
+                break;
+
+            case HeapifyCall.RECURSE_CHILD:
+                // After a swap, we need to recursively heapify the subtree where the swapped element went.
+                // Push a new HeapifyCall for the child onto the stack.
+                // The current call (parent) remains on the stack, waiting for the child to complete.
+                heapifyStack.push(new HeapifyCall(currentCall.largest));
+                updateExplanation("Recursively heapifying subtree at index " + currentCall.largest + " (new value: " + array[currentCall.largest] + ").");
+                currentCall.state = HeapifyCall.WAITING_FOR_CHILD; // Parent is now waiting for child
+                break;
+
+            case HeapifyCall.WAITING_FOR_CHILD: // NEW STATE
+                // This state means the parent is waiting for its child's heapify to complete.
+                // If the child's call is no longer on top of the stack (meaning it was popped),
+                // then this parent call can now be marked as DONE.
+                if (heapifyStack.peek() == currentCall) { // Child has completed and this parent call is now on top
+                    currentCall.state = HeapifyCall.DONE;
+                    heapifyStack.pop(); // Now this parent call is truly done
+                    clearHighlights(); // Clear highlights for this completed heapify
+                }
+                // If heapifyStack.peek() is NOT currentCall, it means a child call is still on top,
+                // so the parent should continue waiting. No action needed in this step.
+                break;
+
+            case HeapifyCall.DONE:
+                // This state indicates that the current HeapifyCall has completed its work
+                // and has been popped from the stack.
+                // This case should ideally not be hit if the stack management is perfect.
+                // If it's still on stack, pop it.
+                if (!heapifyStack.isEmpty() && heapifyStack.peek() == currentCall) {
+                    heapifyStack.pop();
+                }
+                clearHighlights(); // Clear highlights for this completed heapify
+                break;
+        }
     }
 
-    void maxHeapify(int index) {
-        leftChild = 2 * index + 1;
-        rightChild = 2 * index + 2;
-        largestIndex = index;
+    void completeAnalysis() {
+        animationTimer.stop();
+        isAnimating = false;
+        startButton.setText("Completed");
+        startButton.setBackground(new Color(46, 204, 113));
+        clearHighlights(); // Clear any remaining highlights
 
-        // Find largest among node and its children
-        if (leftChild < heapSize && array[leftChild] > array[largestIndex]) {
-            largestIndex = leftChild;
-        }
+        heapSize = 0; // Set heapSize to 0 to ensure all elements are marked as sorted
 
-        if (rightChild < heapSize && array[rightChild] > array[largestIndex]) {
-            largestIndex = rightChild;
-        }
+        // Update totalSteps to match currentStep for accurate final display
+        totalSteps = currentStep;
+        stepLabel.setText("Step: " + currentStep + " / " + totalSteps);
 
-        // If largest is not the current node, swap and continue heapifying
-        if (largestIndex != index) {
-            int temp = array[index];
-            array[index] = array[largestIndex];
-            array[largestIndex] = temp;
-        }
+        statusLabel.setText("<html><center>🎉 Heap Sort Complete!<br>Array is now sorted!</center></html>");
+        updateExplanation("HEAP SORT COMPLETED!\n\n" +
+                "Congratulations! The heap sort algorithm has successfully sorted the array.\n\n" +
+                "SUMMARY:\n" +
+                "• Phase 1: Built a max heap from the unsorted array\n" +
+                "• Phase 2: Repeatedly extracted the maximum element\n" +
+                "• Result: Array sorted in ascending order\n\n" +
+                "Time Complexity: O(n log n)\n" +
+                "Space Complexity: O(1)\n" +
+                "Heap sort is an in-place, comparison-based sorting algorithm that guarantees " +
+                "O(n log n) performance in all cases!");
+        repaint(); // Repaint to show final sorted state
+    }
+
+    void clearHighlights() {
+        heapifyIndex = -1;
+        leftChild = -1;
+        rightChild = -1;
+        largestIndex = -1;
+        swapIndex1 = -1;
+        swapIndex2 = -1;
     }
 
     void buildTreeNodes() {
@@ -536,7 +755,6 @@ public class HeapSortVisualizer extends JFrame {
             int positionInLevel = i - ((int)Math.pow(2, level) - 1);
             int nodesInLevel = (int)Math.pow(2, level);
 
-            // Fixed the casting issue here
             double spacing = (double)panelWidth / (nodesInLevel + 1);
             int x = (int)(panelWidth / 2 + (positionInLevel - nodesInLevel / 2.0 + 0.5) * spacing);
             int y = 60 + level * 80;
@@ -637,7 +855,6 @@ public class HeapSortVisualizer extends JFrame {
 
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 11));
         g2d.setColor(new Color(44, 62, 80));
-        g2d.drawString("Legend:", legendX, legendY);
 
         legendY += 20;
         for (int i = 0; i < labels.length; i++) {
@@ -661,20 +878,22 @@ public class HeapSortVisualizer extends JFrame {
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int panelWidth = arrayPanel.getWidth();
-        int panelHeight = arrayPanel.getHeight();
-        int boxWidth = Math.min(60, (panelWidth - 40) / arraySize);
+        // Fixed width for each box to ensure readability
+        int boxWidth = 60;
         int boxHeight = 50;
-        int startX = (panelWidth - (boxWidth * arraySize + 10 * (arraySize - 1))) / 2;
-        int startY = (panelHeight - boxHeight) / 2;
+        int spacing = 10; // Spacing between boxes
+
+        // Fixed left padding for the first element.
+        int startX = 20;
+        int startY = (arrayPanel.getHeight() - boxHeight) / 2; // Center vertically
 
         // Draw array elements
         for (int i = 0; i < arraySize; i++) {
-            int x = startX + i * (boxWidth + 10);
+            int x = startX + i * (boxWidth + spacing);
             int y = startY;
 
             Color boxColor = defaultColor;
-            if (i >= heapSize) {
+            if (i >= heapSize) { // This condition now correctly colors all elements as sorted when heapSize is 0
                 boxColor = sortedColor;
             } else if (i == heapifyIndex) {
                 boxColor = heapifyColor;
@@ -720,9 +939,9 @@ public class HeapSortVisualizer extends JFrame {
             g2d.drawString(indexText, indexX, y + boxHeight + 12);
         }
 
-        // Draw heap size indicator
-        if (heapSize < arraySize) {
-            int heapEndX = startX + heapSize * (boxWidth + 10) - 5;
+        // Draw heap size indicator ONLY if animating and heap is not fully sorted
+        if (isAnimating && heapSize < arraySize) {
+            int heapEndX = startX + heapSize * (boxWidth + spacing) - (spacing / 2); // Position the line between boxes
             g2d.setColor(new Color(231, 76, 60));
             g2d.setStroke(new BasicStroke(3));
             g2d.drawLine(heapEndX, startY - 10, heapEndX, startY + boxHeight + 10);
@@ -733,7 +952,7 @@ public class HeapSortVisualizer extends JFrame {
     }
 
     void updateInitialExplanation() {
-        updateExplanation("🌳 HEAP SORT ALGORITHM\n\n" +
+        updateExplanation("HEAP SORT ALGORITHM\n\n" +
                 "Heap Sort is a comparison-based sorting algorithm that uses a binary heap data structure. " +
                 "It's an in-place algorithm with guaranteed O(n log n) time complexity.\n\n" +
                 "HOW IT WORKS:\n" +
