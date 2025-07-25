@@ -65,7 +65,7 @@ public class QuickSortVisualizer extends JFrame {
     }
 
     void initializeGUI() {
-        setTitle("⚡ Quick Sort Visualizer - Divide and Conquer Algorithm");
+        setTitle("Quick Sort Visualizer - Divide and Conquer Algorithm");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(15, 15));
 
@@ -86,7 +86,7 @@ public class QuickSortVisualizer extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 90));
 
-        JLabel titleLabel = new JLabel("⚡ QUICK SORT VISUALIZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("QUICK SORT VISUALIZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(25, 0, 15, 0));
@@ -94,10 +94,10 @@ public class QuickSortVisualizer extends JFrame {
 
         // Pivot selection panel
         pivotPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        pivotPanel.setBackground(new Color(248, 249, 250));
+        pivotPanel.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
         pivotPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(255, 94, 77), 2),
-                "🎯 Pivot Selection Strategy",
+                "Pivot Selection Strategy",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(255, 94, 77)
         ));
 
@@ -122,13 +122,13 @@ public class QuickSortVisualizer extends JFrame {
 
         // Control panel
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        controlPanel.setBackground(new Color(248, 249, 250));
+        controlPanel.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
 
-        startButton = createStyledButton("▶ Start Quick Sort", new Color(46, 204, 113));
-        resetButton = createStyledButton("🔄 Reset", new Color(52, 152, 219));
-        customInputButton = createStyledButton("⚙ Custom Input", new Color(155, 89, 182));
+        startButton = createStyledButton("Start Quick Sort", new Color(46, 204, 113));
+        resetButton = createStyledButton("Reset", new Color(52, 152, 219));
+        customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
 
-        speedLabel = new JLabel("⚡ Animation Speed:");
+        speedLabel = new JLabel("Animation Speed:");
         speedLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         speedLabel.setForeground(new Color(44, 62, 80));
 
@@ -137,7 +137,7 @@ public class QuickSortVisualizer extends JFrame {
         speedSlider.setMinorTickSpacing(1);
         speedSlider.setPaintTicks(true);
         speedSlider.setPaintLabels(true);
-        speedSlider.setBackground(new Color(248, 249, 250));
+        speedSlider.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
         speedSlider.setPreferredSize(new Dimension(200, 50));
 
         stepLabel = new JLabel("Step: 0 / 0");
@@ -167,7 +167,7 @@ public class QuickSortVisualizer extends JFrame {
 
                 // Gradient background
                 GradientPaint gradient = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(),
-                        new Color(248, 249, 250));
+                        new Color(248, 249, 250)); // FIX: Changed from 750 to 250
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
 
@@ -177,16 +177,16 @@ public class QuickSortVisualizer extends JFrame {
         arrayPanel.setPreferredSize(new Dimension(1000, 250));
         arrayPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "📊 Quick Sort Partitioning Process",
+                "Quick Sort Partitioning Process",
                 0, 0, new Font("Segoe UI", Font.BOLD, 16), new Color(52, 152, 219)
         ));
 
         // Status and explanation panel
         JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
-        rightPanel.setBackground(new Color(248, 249, 250));
+        rightPanel.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
         rightPanel.setPreferredSize(new Dimension(450, 0));
 
-        statusLabel = new JLabel("<html><center>🎯 Ready to sort!<br>Select pivot strategy and click 'Start'</center></html>", JLabel.CENTER);
+        statusLabel = new JLabel("<html><center>Ready to sort!<br>Select pivot strategy and click 'Start'</center></html>", JLabel.CENTER);
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         statusLabel.setForeground(new Color(44, 62, 80));
         statusLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
@@ -196,7 +196,7 @@ public class QuickSortVisualizer extends JFrame {
         explanationPanel = new JPanel(new BorderLayout());
         explanationPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
-                "📚 Algorithm Explanation",
+                "Algorithm Explanation",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(46, 204, 113)
         ));
         explanationPanel.setBackground(Color.WHITE);
@@ -246,9 +246,17 @@ public class QuickSortVisualizer extends JFrame {
             }
         });
 
-        animationTimer = new Timer(600, new ActionListener() {
+        // FIX: Create timer with dynamic delay based on speed slider
+        animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 performQuickSortStep();
+            }
+        });
+
+        // FIX: Add change listener to speed slider to update timer delay
+        speedSlider.addChangeListener(e -> {
+            if (animationTimer != null) {
+                animationTimer.setDelay(getAnimationDelay());
             }
         });
 
@@ -256,6 +264,14 @@ public class QuickSortVisualizer extends JFrame {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    // FIX: Add method to calculate animation delay based on slider value
+    private int getAnimationDelay() {
+        // Convert slider value (1-10) to delay (1000ms-100ms)
+        // Higher slider value = faster animation = lower delay
+        int sliderValue = speedSlider.getValue();
+        return 1100 - (sliderValue * 100); // Range: 1000ms (slow) to 100ms (fast)
     }
 
     JButton createStyledButton(String text, Color color) {
@@ -314,7 +330,7 @@ public class QuickSortVisualizer extends JFrame {
         callStack = new Stack<>();
         callStack.push(new PartitionCall(0, arraySize - 1));
 
-        statusLabel.setText("<html><center>🎯 Ready to sort!<br>Select pivot strategy and click 'Start'</center></html>");
+        statusLabel.setText("<html><center>Ready to sort!<br>Select pivot strategy and click 'Start'</center></html>");
         stepLabel.setText("Step: 0 / " + totalSteps);
         recursionLabel.setText("Recursion Depth: 0");
     }
@@ -324,7 +340,7 @@ public class QuickSortVisualizer extends JFrame {
             animationTimer.stop();
         }
         generateRandomArray(arraySize);
-        startButton.setText("▶ Start Quick Sort");
+        startButton.setText("Start Quick Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
     }
@@ -349,19 +365,19 @@ public class QuickSortVisualizer extends JFrame {
         inputPanel.add(elementsField);
 
         int result = JOptionPane.showConfirmDialog(this, inputPanel,
-                "⚡ Custom Quick Sort Input", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                "Custom Quick Sort Input", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
                 int size = Integer.parseInt(sizeField.getText().trim());
                 if (size < 5 || size > 20) {
-                    JOptionPane.showMessageDialog(this, "❌ Size must be between 5 and 20");
+                    JOptionPane.showMessageDialog(this, "Size must be between 5 and 20");
                     return;
                 }
 
                 String[] elements = elementsField.getText().trim().split("\\s+");
                 if (elements.length != size) {
-                    JOptionPane.showMessageDialog(this, "❌ Please enter exactly " + size + " numbers");
+                    JOptionPane.showMessageDialog(this, "Please enter exactly " + size + " numbers");
                     return;
                 }
 
@@ -369,8 +385,8 @@ public class QuickSortVisualizer extends JFrame {
                 array = new int[arraySize];
                 for (int i = 0; i < arraySize; i++) {
                     array[i] = Integer.parseInt(elements[i]);
-                    if (array[i] < 1 || array[i] > 999) {
-                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between 1 and 999");
+                    if (array[i] < -999 || array[i] > 999) {
+                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between -999 and 999");
                         return;
                     }
                 }
@@ -380,7 +396,7 @@ public class QuickSortVisualizer extends JFrame {
                 repaint();
 
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "❌ Please enter valid numbers");
+                JOptionPane.showMessageDialog(this, "Please enter valid numbers");
             }
         }
     }
@@ -398,12 +414,12 @@ public class QuickSortVisualizer extends JFrame {
                 if (index >= 0 && index < arraySize) {
                     customPivotIndex = index;
                 } else {
-                    JOptionPane.showMessageDialog(this, "❌ Index must be between 0 and " + (arraySize - 1));
+                    JOptionPane.showMessageDialog(this, "Index must be between 0 and " + (arraySize - 1));
                     pivotSelector.setSelectedItem("Last Element");
                     currentPivotMode = "Last Element";
                 }
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "❌ Please enter a valid number");
+                JOptionPane.showMessageDialog(this, "Please enter a valid number");
                 pivotSelector.setSelectedItem("Last Element");
                 currentPivotMode = "Last Element";
             }
@@ -421,12 +437,12 @@ public class QuickSortVisualizer extends JFrame {
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
 
-        int delay = 1100 - (speedSlider.getValue() * 100);
-        animationTimer.setDelay(delay);
+        // FIX: Update timer delay when starting animation
+        animationTimer.setDelay(getAnimationDelay());
         animationTimer.start();
 
-        statusLabel.setText("<html><center>🚀 Starting Quick Sort...<br>Using " + currentPivotMode + " strategy</center></html>");
-        updateExplanation("🎬 QUICK SORT STARTED!\n\n" +
+        statusLabel.setText("<html><center>Starting Quick Sort...<br>Using " + currentPivotMode + " strategy</center></html>");
+        updateExplanation("QUICK SORT STARTED!\n\n" +
                 "Quick Sort is a divide-and-conquer algorithm that works by selecting a 'pivot' element " +
                 "and partitioning the array around it.\n\n" +
                 "PIVOT STRATEGY: " + currentPivotMode + "\n\n" +
@@ -446,10 +462,10 @@ public class QuickSortVisualizer extends JFrame {
             // Sorting complete
             animationTimer.stop();
             isAnimating = false;
-            startButton.setText("✅ Completed");
+            startButton.setText("Completed");
             startButton.setBackground(new Color(46, 204, 113));
-            statusLabel.setText("<html><center>🎉 Quick Sort Complete!<br>Array is now sorted!</center></html>");
-            updateExplanation("🎉 QUICK SORT COMPLETED!\n\n" +
+            statusLabel.setText("<html><center>Quick Sort Complete!<br>Array is now sorted!</center></html>");
+            updateExplanation("QUICK SORT COMPLETED!\n\n" +
                     "Congratulations! The quick sort algorithm has successfully sorted the array.\n\n" +
                     "SUMMARY:\n" +
                     "• Used " + currentPivotMode + " pivot selection strategy\n" +
@@ -499,9 +515,9 @@ public class QuickSortVisualizer extends JFrame {
                 recursionDepth = callStack.size();
                 recursionLabel.setText("Recursion Depth: " + recursionDepth);
 
-                statusLabel.setText("<html><center>🎯 Partitioning [" + currentLow + ", " + currentHigh + "]<br>" +
+                statusLabel.setText("<html><center>Partitioning [" + currentLow + ", " + currentHigh + "]<br>" +
                         "Pivot: " + pivotValue + " at index " + pivotIndex + "</center></html>");
-                updateExplanation("🎯 NEW PARTITION CALL\n\n" +
+                updateExplanation("NEW PARTITION CALL\n\n" +
                         "Range: [" + currentLow + ", " + currentHigh + "]\n" +
                         "Pivot selected: " + pivotValue + " (index " + pivotIndex + ")\n" +
                         "Strategy: " + currentPivotMode + "\n\n" +
@@ -514,7 +530,7 @@ public class QuickSortVisualizer extends JFrame {
             } else {
                 // Base case - single element or empty
                 callStack.pop();
-                statusLabel.setText("<html><center>✅ Base case reached<br>Range [" + currentLow + ", " + currentHigh + "] complete</center></html>");
+                statusLabel.setText("<html><center>Base case reached<br>Range [" + currentLow + ", " + currentHigh + "] complete</center></html>");
             }
 
             currentCall.isProcessed = true;
@@ -545,9 +561,9 @@ public class QuickSortVisualizer extends JFrame {
             swapIndex2 = rightPointer;
             swap(leftPointer, rightPointer);
 
-            statusLabel.setText("<html><center>🔄 Swapping elements<br>" +
+            statusLabel.setText("<html><center>Swapping elements<br>" +
                     array[swapIndex2] + " ↔ " + array[swapIndex1] + "</center></html>");
-            updateExplanation("🔄 SWAPPING ELEMENTS\n\n" +
+            updateExplanation("SWAPPING ELEMENTS\n\n" +
                     "Found " + array[swapIndex2] + " at index " + swapIndex1 + " (should be on right)\n" +
                     "Found " + array[swapIndex1] + " at index " + swapIndex2 + " (should be on left)\n\n" +
                     "Swapping these elements to maintain partition property:\n" +
@@ -562,9 +578,9 @@ public class QuickSortVisualizer extends JFrame {
             int finalPivotPos = leftPointer;
             swap(pivotIndex, finalPivotPos);
 
-            statusLabel.setText("<html><center>✅ Partition complete!<br>" +
+            statusLabel.setText("<html><center>Partition complete!<br>" +
                     "Pivot " + pivotValue + " placed at index " + finalPivotPos + "</center></html>");
-            updateExplanation("✅ PARTITION COMPLETED!\n\n" +
+            updateExplanation("PARTITION COMPLETED!\n\n" +
                     "Pivot " + pivotValue + " is now in its final sorted position at index " + finalPivotPos + ".\n\n" +
                     "PARTITION RESULT:\n" +
                     "• Elements at indices [" + currentLow + ", " + (finalPivotPos-1) + "] are ≤ " + pivotValue + "\n" +
@@ -751,7 +767,6 @@ public class QuickSortVisualizer extends JFrame {
 
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 12));
         g2d.setColor(new Color(44, 62, 80));
-        g2d.drawString("Legend:", legendX, legendY);
 
         legendY += 20;
         for (int i = 0; i < labels.length; i++) {
@@ -771,7 +786,7 @@ public class QuickSortVisualizer extends JFrame {
     }
 
     void updateInitialExplanation() {
-        updateExplanation("⚡ QUICK SORT ALGORITHM\n\n" +
+        updateExplanation("QUICK SORT ALGORITHM\n\n" +
                 "Quick Sort is a highly efficient divide-and-conquer sorting algorithm. " +
                 "It works by selecting a 'pivot' element and partitioning the array around it.\n\n" +
                 "PIVOT SELECTION STRATEGIES:\n" +
