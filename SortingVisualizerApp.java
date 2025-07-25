@@ -52,7 +52,7 @@ public class SortingVisualizerApp extends JFrame {
     }
 
     void initializeGUI() {
-        setTitle("🎯 Sorting Algorithms Visualizer - Interactive Learning Tool");
+        setTitle("Sorting Algorithms Visualizer - Interactive Learning Tool");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
@@ -72,7 +72,7 @@ public class SortingVisualizerApp extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 80));
 
-        JLabel titleLabel = new JLabel("🔄 SORTING ALGORITHMS VISUALIZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("SORTING ALGORITHMS VISUALIZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
@@ -85,14 +85,14 @@ public class SortingVisualizerApp extends JFrame {
 
         JPanel insertionPanel = new JPanel();
         insertionPanel.setBackground(new Color(236, 240, 241));
-        insertionPanel.add(new JLabel("🔄 Insertion Sort Algorithm"));
+        insertionPanel.add(new JLabel("Insertion Sort Algorithm"));
 
         JPanel selectionPanel = new JPanel();
         selectionPanel.setBackground(new Color(236, 240, 241));
-        selectionPanel.add(new JLabel("🎯 Selection Sort Algorithm"));
+        selectionPanel.add(new JLabel("Selection Sort Algorithm"));
 
-        algorithmTabs.addTab("🔄 Insertion Sort", insertionPanel);
-        algorithmTabs.addTab("🎯 Selection Sort", selectionPanel);
+        algorithmTabs.addTab("Insertion Sort", insertionPanel);
+        algorithmTabs.addTab("Selection Sort", selectionPanel);
 
         algorithmTabs.addChangeListener(e -> {
             int selectedIndex = algorithmTabs.getSelectedIndex();
@@ -105,11 +105,11 @@ public class SortingVisualizerApp extends JFrame {
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         controlPanel.setBackground(new Color(236, 240, 241));
 
-        startButton = createStyledButton("▶ Start Sort", new Color(46, 204, 113));
-        resetButton = createStyledButton("🔄 Reset", new Color(52, 152, 219));
-        customInputButton = createStyledButton("⚙ Custom Input", new Color(155, 89, 182));
+        startButton = createStyledButton("Start Sort", new Color(46, 204, 113));
+        resetButton = createStyledButton("Reset", new Color(52, 152, 219));
+        customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
 
-        speedLabel = new JLabel("⚡ Animation Speed:");
+        speedLabel = new JLabel("Animation Speed:");
         speedLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         speedLabel.setForeground(new Color(44, 62, 80));
 
@@ -159,7 +159,7 @@ public class SortingVisualizerApp extends JFrame {
         bottomPanel.setBackground(new Color(236, 240, 241));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        statusLabel = new JLabel("🎯 Ready to sort - Select an algorithm and click 'Start Sort'!", JLabel.CENTER);
+        statusLabel = new JLabel("Ready to sort - Select an algorithm and click 'Start Sort'!", JLabel.CENTER);
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         statusLabel.setForeground(new Color(44, 62, 80));
         statusLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -167,7 +167,7 @@ public class SortingVisualizerApp extends JFrame {
         explanationPanel = new JPanel(new BorderLayout());
         explanationPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "📚 Step-by-Step Explanation",
+                "Step-by-Step Explanation",
                 0, 0, new Font("Segoe UI", Font.BOLD, 12), new Color(52, 152, 219)
         ));
         explanationPanel.setBackground(Color.WHITE);
@@ -216,7 +216,8 @@ public class SortingVisualizerApp extends JFrame {
             }
         });
 
-        animationTimer = new Timer(200, new ActionListener() {
+        // FIX: Create timer with dynamic delay based on speed slider
+        animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (currentAlgorithm.equals("Insertion Sort")) {
                     performInsertionSortStep();
@@ -226,10 +227,25 @@ public class SortingVisualizerApp extends JFrame {
             }
         });
 
+        // FIX: Add change listener to speed slider to update timer delay in real-time
+        speedSlider.addChangeListener(e -> {
+            if (animationTimer != null) {
+                animationTimer.setDelay(getAnimationDelay());
+            }
+        });
+
         updateAlgorithmExplanation();
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    // FIX: Add method to calculate animation delay based on slider value
+    private int getAnimationDelay() {
+        // Convert slider value (1-10) to delay (1000ms-100ms)
+        // Higher slider value = faster animation = lower delay
+        int sliderValue = speedSlider.getValue();
+        return 1100 - (sliderValue * 100); // Range: 1000ms (slow) to 100ms (fast)
     }
 
     JButton createStyledButton(String text, Color color) {
@@ -301,7 +317,7 @@ public class SortingVisualizerApp extends JFrame {
         animationStep = 0;
         currentStep = 0;
 
-        statusLabel.setText("🎯 Ready to sort - Select an algorithm and click 'Start Sort'!");
+        statusLabel.setText("Ready to sort - Select an algorithm and click 'Start Sort'!");
         stepLabel.setText("Step: 0 / " + totalSteps);
     }
 
@@ -310,7 +326,7 @@ public class SortingVisualizerApp extends JFrame {
             animationTimer.stop();
         }
         generateRandomArray(arraySize);
-        startButton.setText("▶ Start Sort");
+        startButton.setText("Start Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
     }
@@ -332,19 +348,19 @@ public class SortingVisualizerApp extends JFrame {
         inputPanel.add(elementsField);
 
         int result = JOptionPane.showConfirmDialog(this, inputPanel,
-                "🎯 Custom Array Input", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                "Custom Array Input", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
                 int size = Integer.parseInt(sizeField.getText().trim());
                 if (size < 3 || size > 12) {
-                    JOptionPane.showMessageDialog(this, "❌ Size must be between 3 and 12");
+                    JOptionPane.showMessageDialog(this, "Size must be between 3 and 12");
                     return;
                 }
 
                 String[] elements = elementsField.getText().trim().split("\\s+");
                 if (elements.length != size) {
-                    JOptionPane.showMessageDialog(this, "❌ Please enter exactly " + size + " numbers");
+                    JOptionPane.showMessageDialog(this, "Please enter exactly " + size + " numbers");
                     return;
                 }
 
@@ -352,8 +368,9 @@ public class SortingVisualizerApp extends JFrame {
                 array = new int[arraySize];
                 for (int i = 0; i < arraySize; i++) {
                     array[i] = Integer.parseInt(elements[i]);
-                    if (array[i] < 1 || array[i] > 999) {
-                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between 1 and 999");
+                    // FIX: Allow 0 and negative numbers, adjust range
+                    if (array[i] < -999 || array[i] > 999) {
+                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between -999 and 999");
                         return;
                     }
                 }
@@ -363,7 +380,7 @@ public class SortingVisualizerApp extends JFrame {
                 repaint();
 
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "❌ Please enter valid numbers");
+                JOptionPane.showMessageDialog(this, "Please enter valid numbers");
             }
         }
     }
@@ -376,18 +393,18 @@ public class SortingVisualizerApp extends JFrame {
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
 
-        int delay = 1100 - (speedSlider.getValue() * 100);
-        animationTimer.setDelay(delay);
+        // FIX: Update timer delay when starting animation
+        animationTimer.setDelay(getAnimationDelay());
         animationTimer.start();
 
-        statusLabel.setText("🚀 Starting " + currentAlgorithm + " algorithm...");
+        statusLabel.setText("Starting " + currentAlgorithm + " algorithm...");
 
         if (currentAlgorithm.equals("Insertion Sort")) {
-            updateExplanation("🎬 INSERTION SORT STARTED!\n\n" +
+            updateExplanation("INSERTION SORT STARTED!\n\n" +
                     "We begin with the second element (index 1) as the first element is considered already sorted. " +
                     "The algorithm will pick each element and find its correct position in the sorted portion.");
         } else {
-            updateExplanation("🎬 SELECTION SORT STARTED!\n\n" +
+            updateExplanation("SELECTION SORT STARTED!\n\n" +
                     "Selection sort works by finding the minimum element in the unsorted portion and swapping it " +
                     "with the first element of the unsorted portion. We'll repeat this process for each position.");
         }
@@ -406,8 +423,8 @@ public class SortingVisualizerApp extends JFrame {
             insertionKeyValue = array[insertionCurrentIndex];
             insertionCompareIndex = insertionCurrentIndex - 1;
             insertionIsComparing = true;
-            statusLabel.setText("🔍 Selecting element " + insertionKeyValue + " at position " + insertionCurrentIndex);
-            updateExplanation("🎯 SELECTING KEY ELEMENT\n\n" +
+            statusLabel.setText("Selecting element " + insertionKeyValue + " at position " + insertionCurrentIndex);
+            updateExplanation("SELECTING KEY ELEMENT\n\n" +
                     "Current element: " + insertionKeyValue + " (at index " + insertionCurrentIndex + ")\n" +
                     "This element needs to be inserted into the correct position in the sorted portion " +
                     "(indices 0 to " + (insertionCurrentIndex-1) + "). We'll compare it with elements from right to left.");
@@ -417,8 +434,8 @@ public class SortingVisualizerApp extends JFrame {
             if (insertionCompareIndex >= 0 && array[insertionCompareIndex] > insertionKeyValue) {
                 insertionIsComparing = false;
                 insertionIsShifting = true;
-                statusLabel.setText("📊 Comparing: " + array[insertionCompareIndex] + " > " + insertionKeyValue + " → Shift right");
-                updateExplanation("🔄 COMPARISON & SHIFTING\n\n" +
+                statusLabel.setText("Comparing: " + array[insertionCompareIndex] + " > " + insertionKeyValue + " → Shift right");
+                updateExplanation("COMPARISON & SHIFTING\n\n" +
                         "Comparing: " + array[insertionCompareIndex] + " with key " + insertionKeyValue + "\n" +
                         "Since " + array[insertionCompareIndex] + " > " + insertionKeyValue + ", we shift " +
                         array[insertionCompareIndex] + " one position right to make space.");
@@ -426,8 +443,8 @@ public class SortingVisualizerApp extends JFrame {
                 array[insertionCompareIndex + 1] = insertionKeyValue;
                 insertionCurrentIndex++;
                 insertionIsComparing = false;
-                statusLabel.setText("✅ Inserted " + insertionKeyValue + " at position " + (insertionCompareIndex + 1));
-                updateExplanation("✅ INSERTION COMPLETED\n\n" +
+                statusLabel.setText("Inserted " + insertionKeyValue + " at position " + (insertionCompareIndex + 1));
+                updateExplanation("INSERTION COMPLETED\n\n" +
                         "Element " + insertionKeyValue + " inserted at index " + (insertionCompareIndex + 1) + ".\n" +
                         "The sorted portion now extends from index 0 to " + (insertionCurrentIndex-1) + ".");
             }
@@ -456,8 +473,8 @@ public class SortingVisualizerApp extends JFrame {
             selectionMinIndex = selectionCurrentIndex;
             selectionCompareIndex = selectionCurrentIndex + 1;
             selectionFindingMin = true;
-            statusLabel.setText("🔍 Finding minimum in unsorted portion starting from index " + selectionCurrentIndex);
-            updateExplanation("🎯 FINDING MINIMUM ELEMENT\n\n" +
+            statusLabel.setText("Finding minimum in unsorted portion starting from index " + selectionCurrentIndex);
+            updateExplanation("FINDING MINIMUM ELEMENT\n\n" +
                     "Pass " + (selectionCurrentIndex + 1) + ": Looking for the minimum element in the unsorted portion " +
                     "(indices " + selectionCurrentIndex + " to " + (arraySize-1) + ").\n" +
                     "Current minimum candidate: " + array[selectionMinIndex] + " at index " + selectionMinIndex);
@@ -467,14 +484,14 @@ public class SortingVisualizerApp extends JFrame {
             if (selectionCompareIndex < arraySize) {
                 if (array[selectionCompareIndex] < array[selectionMinIndex]) {
                     selectionMinIndex = selectionCompareIndex;
-                    statusLabel.setText("🆕 New minimum found: " + array[selectionMinIndex] + " at index " + selectionMinIndex);
-                    updateExplanation("🆕 NEW MINIMUM FOUND!\n\n" +
+                    statusLabel.setText("New minimum found: " + array[selectionMinIndex] + " at index " + selectionMinIndex);
+                    updateExplanation("NEW MINIMUM FOUND!\n\n" +
                             "Comparing " + array[selectionCompareIndex] + " with current minimum " + array[selectionMinIndex] + "\n" +
                             "Since " + array[selectionCompareIndex] + " < " + array[selectionMinIndex] + ", we update our minimum to " +
                             array[selectionMinIndex] + " at index " + selectionMinIndex);
                 } else {
-                    statusLabel.setText("📊 Comparing: " + array[selectionCompareIndex] + " >= " + array[selectionMinIndex] + " → Continue");
-                    updateExplanation("📊 COMPARISON\n\n" +
+                    statusLabel.setText("Comparing: " + array[selectionCompareIndex] + " >= " + array[selectionMinIndex] + " → Continue");
+                    updateExplanation("COMPARISON\n\n" +
                             "Comparing " + array[selectionCompareIndex] + " with current minimum " + array[selectionMinIndex] + "\n" +
                             "Since " + array[selectionCompareIndex] + " >= " + array[selectionMinIndex] + ", the minimum remains " +
                             array[selectionMinIndex] + " at index " + selectionMinIndex);
@@ -483,8 +500,8 @@ public class SortingVisualizerApp extends JFrame {
             } else {
                 selectionFindingMin = false;
                 selectionSwapping = true;
-                statusLabel.setText("🔄 Swapping minimum " + array[selectionMinIndex] + " with " + array[selectionCurrentIndex]);
-                updateExplanation("🔄 SWAPPING ELEMENTS\n\n" +
+                statusLabel.setText("Swapping minimum " + array[selectionMinIndex] + " with " + array[selectionCurrentIndex]);
+                updateExplanation("SWAPPING ELEMENTS\n\n" +
                         "Minimum element found: " + array[selectionMinIndex] + " at index " + selectionMinIndex + "\n" +
                         "Swapping it with element " + array[selectionCurrentIndex] + " at index " + selectionCurrentIndex +
                         " to place the minimum in its correct sorted position.");
@@ -499,8 +516,8 @@ public class SortingVisualizerApp extends JFrame {
 
             selectionCurrentIndex++;
             selectionSwapping = false;
-            statusLabel.setText("✅ Swap completed. Position " + (selectionCurrentIndex-1) + " is now sorted.");
-            updateExplanation("✅ SWAP COMPLETED\n\n" +
+            statusLabel.setText("Swap completed. Position " + (selectionCurrentIndex-1) + " is now sorted.");
+            updateExplanation("SWAP COMPLETED\n\n" +
                     "Elements successfully swapped! Position " + (selectionCurrentIndex-1) + " now contains the " +
                     (selectionCurrentIndex) + getOrdinalSuffix(selectionCurrentIndex) + " smallest element.\n" +
                     "Sorted portion: indices 0 to " + (selectionCurrentIndex-1) + "\n" +
@@ -525,8 +542,8 @@ public class SortingVisualizerApp extends JFrame {
         isAnimating = false;
         startButton.setText("✅ Completed");
         startButton.setBackground(new Color(46, 204, 113));
-        statusLabel.setText("🎉 " + currentAlgorithm + " completed successfully!");
-        updateExplanation("🎉 SORTING COMPLETED!\n\n" +
+        statusLabel.setText(currentAlgorithm + " completed successfully!");
+        updateExplanation("SORTING COMPLETED!\n\n" +
                 "Congratulations! The " + currentAlgorithm.toLowerCase() + " algorithm has successfully sorted the array. " +
                 "Every element is now in its correct position. " +
                 (currentAlgorithm.equals("Insertion Sort") ?
@@ -537,13 +554,13 @@ public class SortingVisualizerApp extends JFrame {
 
     void updateAlgorithmExplanation() {
         if (currentAlgorithm.equals("Insertion Sort")) {
-            updateExplanation("🔄 INSERTION SORT ALGORITHM\n\n" +
+            updateExplanation("INSERTION SORT ALGORITHM\n\n" +
                     "Insertion Sort builds a sorted portion one element at a time. It takes each element from " +
                     "the unsorted portion and inserts it into the correct position in the sorted portion.\n\n" +
                     "Time Complexity: O(n²)\nSpace Complexity: O(1)\nStable: Yes\n\n" +
                     "Click 'Start Sort' to see it in action!");
         } else {
-            updateExplanation("🎯 SELECTION SORT ALGORITHM\n\n" +
+            updateExplanation("SELECTION SORT ALGORITHM\n\n" +
                     "Selection Sort works by repeatedly finding the minimum element from the unsorted portion " +
                     "and swapping it with the first element of the unsorted portion.\n\n" +
                     "Time Complexity: O(n²)\nSpace Complexity: O(1)\nStable: No\n\n" +
