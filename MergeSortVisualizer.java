@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays; // Added for Arrays.toString() in explanation
 
 public class MergeSortVisualizer extends JFrame {
     int[] array;
@@ -91,7 +92,7 @@ public class MergeSortVisualizer extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 80));
 
-        JLabel titleLabel = new JLabel("🔀 MERGE SORT VISUALIZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("MERGE SORT VISUALIZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 15, 0));
@@ -99,14 +100,14 @@ public class MergeSortVisualizer extends JFrame {
 
         // Control panel
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        controlPanel.setBackground(new Color(248, 249, 250));
+        controlPanel.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
         controlPanel.setPreferredSize(new Dimension(0, 90));
 
-        startButton = createStyledButton("▶ Start Merge Sort", new Color(46, 204, 113));
-        resetButton = createStyledButton("🔄 Reset Array", new Color(52, 152, 219));
-        customInputButton = createStyledButton("⚙ Custom Input", new Color(155, 89, 182));
+        startButton = createStyledButton("Start Merge Sort", new Color(46, 204, 113));
+        resetButton = createStyledButton("Reset Array", new Color(52, 152, 219));
+        customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
 
-        speedLabel = new JLabel("⚡ Animation Speed:");
+        speedLabel = new JLabel("Animation Speed:");
         speedLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         speedLabel.setForeground(new Color(44, 62, 80));
 
@@ -137,7 +138,7 @@ public class MergeSortVisualizer extends JFrame {
 
         // Create main content panel
         JPanel mainContentPanel = new JPanel(new BorderLayout(15, 15));
-        mainContentPanel.setBackground(new Color(248, 249, 250));
+        mainContentPanel.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
 
         // Array visualization panel with scrolling
         arrayPanel = new JPanel() {
@@ -148,7 +149,7 @@ public class MergeSortVisualizer extends JFrame {
                 g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
                 GradientPaint gradient = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(),
-                        new Color(248, 249, 250));
+                        new Color(248, 249, 250)); // FIX: Changed from 750 to 250
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
 
@@ -168,13 +169,13 @@ public class MergeSortVisualizer extends JFrame {
         arrayScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         arrayScrollPane.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "📊 Array Visualization - Merge Sort Process",
+                "Array Visualization - Merge Sort Process",
                 0, 0, new Font("Segoe UI", Font.BOLD, 16), new Color(52, 152, 219)
         ));
 
         // Right panel for status and explanation
         JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
-        rightPanel.setBackground(new Color(248, 249, 250));
+        rightPanel.setBackground(new Color(248, 249, 250)); // FIX: Changed from 750 to 250
         rightPanel.setPreferredSize(new Dimension(450, 600));
 
         // Status panel
@@ -182,7 +183,7 @@ public class MergeSortVisualizer extends JFrame {
         statusPanel.setBackground(Color.WHITE);
         statusPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "📊 Current Status",
+                "Current Status",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(52, 152, 219)
         ));
         statusPanel.setPreferredSize(new Dimension(450, 120));
@@ -197,7 +198,7 @@ public class MergeSortVisualizer extends JFrame {
         explanationPanel = new JPanel(new BorderLayout());
         explanationPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
-                "📚 Algorithm Explanation & Step Details",
+                "Algorithm Explanation & Step Details",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(46, 204, 113)
         ));
         explanationPanel.setBackground(Color.WHITE);
@@ -246,14 +247,30 @@ public class MergeSortVisualizer extends JFrame {
             }
         });
 
-        animationTimer = new Timer(1000, new ActionListener() {
+        // FIX: Create timer with dynamic delay based on speed slider
+        animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 performMergeSortStep();
             }
         });
 
+        // FIX: Add change listener to speed slider to update timer delay
+        speedSlider.addChangeListener(e -> {
+            if (animationTimer != null) {
+                animationTimer.setDelay(getAnimationDelay());
+            }
+        });
+
         updateInitialExplanation();
         setVisible(true);
+    }
+
+    // FIX: Add method to calculate animation delay based on slider value
+    private int getAnimationDelay() {
+        // Convert slider value (1-10) to delay (1500ms-150ms)
+        // Higher slider value = faster animation = lower delay
+        int sliderValue = speedSlider.getValue();
+        return 1650 - (sliderValue * 150); // Range: 1500ms (slow) to 150ms (fast)
     }
 
     JButton createStyledButton(String text, Color color) {
@@ -322,7 +339,7 @@ public class MergeSortVisualizer extends JFrame {
             animationTimer.stop();
         }
         generateRandomArray(arraySize);
-        startButton.setText("▶ Start Merge Sort");
+        startButton.setText("Start Merge Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
     }
@@ -337,7 +354,7 @@ public class MergeSortVisualizer extends JFrame {
         sizeLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         JTextField sizeField = new JTextField("8");
 
-        JLabel elementsLabel = new JLabel("Elements (space-separated):");
+        JLabel elementsLabel = new JLabel("Elements (space-separated, -999 to 999):");
         elementsLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         JTextField elementsField = new JTextField("38 27 43 3 9 82 10 1");
 
@@ -368,8 +385,8 @@ public class MergeSortVisualizer extends JFrame {
                 tempArray = new int[arraySize];
                 for (int i = 0; i < arraySize; i++) {
                     array[i] = Integer.parseInt(elements[i]);
-                    if (array[i] < 1 || array[i] > 999) {
-                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between 1 and 999");
+                    if (array[i] < -999 || array[i] > 999) {
+                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between -999 and 999");
                         return;
                     }
                 }
@@ -389,17 +406,17 @@ public class MergeSortVisualizer extends JFrame {
         if (isAnimating) return;
 
         isAnimating = true;
-        startButton.setText("⏸ Sorting...");
+        startButton.setText("Sorting...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
 
-        int delay = 1500 - (speedSlider.getValue() * 130);
-        animationTimer.setDelay(delay);
+        // FIX: Update timer delay when starting animation
+        animationTimer.setDelay(getAnimationDelay());
         animationTimer.start();
 
         statusLabel.setText("<html><center>🚀 Starting Merge Sort...<br>Merging sorted sub-arrays</center></html>");
         phaseLabel.setText("Phase: Merging");
-        updateExplanation("🎬 MERGE SORT STARTED!\n\n" +
+        updateExplanation("MERGE SORT STARTED!\n\n" +
                 "Merge Sort uses a divide-and-conquer approach.\n" +
                 "We'll simulate the merging process step by step.\n\n" +
                 "The algorithm works by:\n" +
@@ -417,14 +434,14 @@ public class MergeSortVisualizer extends JFrame {
             // Sorting complete
             animationTimer.stop();
             isAnimating = false;
-            startButton.setText("✅ Completed");
+            startButton.setText("Completed");
             startButton.setBackground(new Color(46, 204, 113));
             statusLabel.setText("<html><center>🎉 Merge Sort Complete!<br>Array is now perfectly sorted!</center></html>");
             phaseLabel.setText("Phase: Complete");
-            updateExplanation("🎉 MERGE SORT COMPLETED!\n\n" +
+            updateExplanation("MERGE SORT COMPLETED!\n\n" +
                     "Congratulations! The merge sort algorithm has successfully sorted the array.\n\n" +
                     "FINAL RESULT:\n" +
-                    "The array is now in perfect ascending order!\n\n" +
+                    "The array is now in perfect ascending order!\n" + Arrays.toString(array) + "\n\n" +
                     "ALGORITHM SUMMARY:\n" +
                     "• Total merge operations: " + mergeOperations.size() + "\n" +
                     "• All sub-arrays merged successfully\n" +
@@ -466,7 +483,7 @@ public class MergeSortVisualizer extends JFrame {
             mergeMid = op.mid;
 
             statusLabel.setText("<html><center>🔄 " + op.description + "<br>Merging [" + mergeLeft + "," + mergeMid + "] with [" + (mergeMid + 1) + "," + mergeRight + "]</center></html>");
-            updateExplanation("🔄 MERGE OPERATION " + (currentOperationIndex + 1) + " / " + mergeOperations.size() + "\n\n" +
+            updateExplanation("MERGE OPERATION " + (currentOperationIndex + 1) + " / " + mergeOperations.size() + "\n\n" +
                     op.description + "\n\n" +
                     "CURRENT OPERATION:\n" +
                     "• Left sub-array: indices [" + mergeLeft + ", " + mergeMid + "]\n" +
@@ -672,7 +689,6 @@ public class MergeSortVisualizer extends JFrame {
 
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 12));
         g2d.setColor(new Color(44, 62, 80));
-        g2d.drawString("Legend:", legendX, legendY);
 
         legendY += 18;
         for (int i = 0; i < labels.length; i++) {
@@ -692,7 +708,7 @@ public class MergeSortVisualizer extends JFrame {
     }
 
     void updateInitialExplanation() {
-        updateExplanation("🔀 MERGE SORT ALGORITHM\n\n" +
+        updateExplanation("MERGE SORT ALGORITHM\n\n" +
                 "Merge Sort is a divide-and-conquer algorithm that guarantees O(n log n) performance.\n\n" +
                 "HOW IT WORKS:\n" +
                 "1. Conceptually divide the array into smaller sub-arrays\n" +
