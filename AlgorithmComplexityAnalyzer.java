@@ -75,7 +75,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
     }
 
     void initializeGUI() {
-        setTitle("🔬 Algorithm Time Complexity Analyzer & Comparator");
+        setTitle("Algorithm Time Complexity Analyzer & Comparator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout(10, 10));
@@ -113,7 +113,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 80));
 
-        JLabel titleLabel = new JLabel("🔬 ALGORITHM TIME COMPLEXITY ANALYZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("ALGORITHM TIME COMPLEXITY ANALYZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
@@ -159,27 +159,27 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         ));
 
         // Category filter
-        JLabel categoryLabel = new JLabel("📂 Category:");
+        JLabel categoryLabel = new JLabel("Category:");
         categoryLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         categoryFilter = new JComboBox<>(new String[]{"All Categories", "Prime Numbers", "Sorting"});
         categoryFilter.setPreferredSize(new Dimension(150, 30));
         categoryFilter.addActionListener(e -> filterTable());
 
         // Complexity filter
-        JLabel complexityLabel = new JLabel("⚡ Max Complexity:");
+        JLabel complexityLabel = new JLabel("Max Complexity:");
         complexityLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         complexityFilter = new JComboBox<>(new String[]{"All", "O(n log n) or better", "O(n²) or better", "Show worst only"});
         complexityFilter.setPreferredSize(new Dimension(180, 30));
         complexityFilter.addActionListener(e -> filterTable());
 
         // Buttons
-        compareButton = createStyledButton("🔍 Compare Selected", new Color(52, 152, 219));
+        compareButton = createStyledButton("Compare Selected", new Color(52, 152, 219));
         compareButton.addActionListener(e -> compareSelectedAlgorithms());
 
-        analyzeButton = createStyledButton("📊 Analyze All", new Color(46, 204, 113));
+        analyzeButton = createStyledButton("Analyze All", new Color(46, 204, 113));
         analyzeButton.addActionListener(e -> analyzeAllAlgorithms());
 
-        resetButton = createStyledButton("🔄 Reset", new Color(155, 89, 182));
+        resetButton = createStyledButton("Reset", new Color(155, 89, 182));
         resetButton.addActionListener(e -> resetFilters());
 
         controlPanel.add(categoryLabel);
@@ -249,7 +249,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         tableScrollPane = new JScrollPane(complexityTable);
         tableScrollPane.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "📊 Algorithm Complexity Comparison Table",
+                "Algorithm Complexity Comparison Table",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 14), new Color(52, 152, 219)
         ));
@@ -265,7 +265,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         legendPanel.setBackground(Color.WHITE);
         legendPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(155, 89, 182), 1),
-                "🎨 Complexity Legend",
+                "Complexity Legend",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 11), new Color(155, 89, 182)
         ));
@@ -302,7 +302,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         JPanel analysisPanel = new JPanel(new BorderLayout());
         analysisPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
-                "📈 Complexity Analysis & Insights",
+                "Complexity Analysis & Insights",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 12), new Color(46, 204, 113)
         ));
@@ -324,7 +324,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         JPanel comparisonSubPanel = new JPanel(new BorderLayout());
         comparisonSubPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(231, 76, 60), 2),
-                "⚔️ Algorithm Comparison Results",
+                "Algorithm Comparison Results",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 12), new Color(231, 76, 60)
         ));
@@ -419,7 +419,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         }
 
         StringBuilder comparison = new StringBuilder();
-        comparison.append("🔍 ALGORITHM COMPARISON ANALYSIS\n");
+        comparison.append("ALGORITHM COMPARISON ANALYSIS\n");
         comparison.append("=" .repeat(50)).append("\n\n");
 
         List<AlgorithmData> selectedAlgos = new ArrayList<>();
@@ -443,7 +443,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
             String category = entry.getKey();
             List<AlgorithmData> algos = entry.getValue();
 
-            comparison.append("📂 ").append(category.toUpperCase()).append(" ALGORITHMS:\n");
+            comparison.append("").append(category.toUpperCase()).append(" ALGORITHMS:\n");
             comparison.append("-".repeat(30)).append("\n");
 
             // Find best and worst in category
@@ -457,8 +457,8 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
             for (AlgorithmData algo : algos) {
                 comparison.append("• ").append(algo.name).append(":\n");
                 comparison.append("  Average: ").append(algo.averageCase);
-                if (algo == bestAvg) comparison.append(" ⭐ BEST");
-                if (algo == worstAvg && algos.size() > 1) comparison.append(" ⚠️ WORST");
+                if (algo == bestAvg) comparison.append("BEST");
+                if (algo == worstAvg && algos.size() > 1) comparison.append("WORST");
                 comparison.append("\n");
                 comparison.append("  Best: ").append(algo.bestCase);
                 comparison.append(" | Worst: ").append(algo.worstCase).append("\n");
@@ -467,13 +467,13 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
 
             // Category recommendations
             if (category.equals("Sorting")) {
-                comparison.append("🎯 SORTING RECOMMENDATIONS:\n");
+                comparison.append("SORTING RECOMMENDATIONS:\n");
                 comparison.append("• For small datasets (n < 50): Insertion Sort\n");
                 comparison.append("• For general purpose: Merge Sort (stable) or Quick Sort (faster average)\n");
                 comparison.append("• For guaranteed O(n log n): Merge Sort or Heap Sort\n");
                 comparison.append("• Avoid: Bubble Sort, Selection Sort for large datasets\n\n");
             } else if (category.equals("Prime Numbers")) {
-                comparison.append("🎯 PRIME NUMBER RECOMMENDATIONS:\n");
+                comparison.append("PRIME NUMBER RECOMMENDATIONS:\n");
                 comparison.append("• For single number check: Iterative method\n");
                 comparison.append("• For finding all primes in range: Sieve of Eratosthenes\n");
                 comparison.append("• Sieve is much more efficient for multiple prime queries\n\n");
@@ -481,7 +481,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         }
 
         // Overall comparison
-        comparison.append("🏆 OVERALL COMPARISON SUMMARY:\n");
+        comparison.append("OVERALL COMPARISON SUMMARY:\n");
         comparison.append("=" .repeat(35)).append("\n");
 
         AlgorithmData overallBest = selectedAlgos.stream()
@@ -492,11 +492,11 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
                 .orElse(null);
 
         if (overallBest != null) {
-            comparison.append("🥇 Best Average Case: ").append(overallBest.name)
+            comparison.append("Best Average Case: ").append(overallBest.name)
                     .append(" (").append(overallBest.averageCase).append(")\n");
         }
         if (overallWorst != null) {
-            comparison.append("🥉 Worst Average Case: ").append(overallWorst.name)
+            comparison.append("Worst Average Case: ").append(overallWorst.name)
                     .append(" (").append(overallWorst.averageCase).append(")\n");
         }
 
@@ -516,7 +516,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
 
     void analyzeAllAlgorithms() {
         StringBuilder analysis = new StringBuilder();
-        analysis.append("📊 COMPREHENSIVE ALGORITHM ANALYSIS\n");
+        analysis.append("COMPREHENSIVE ALGORITHM ANALYSIS\n");
         analysis.append("=" .repeat(45)).append("\n\n");
 
         // Complexity distribution
@@ -525,7 +525,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
             complexityCount.merge(algo.averageCase, 1, Integer::sum);
         }
 
-        analysis.append("📈 COMPLEXITY DISTRIBUTION:\n");
+        analysis.append("COMPLEXITY DISTRIBUTION:\n");
         analysis.append("-".repeat(25)).append("\n");
         complexityCount.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByKey((a, b) -> compareComplexity(a, b)))
@@ -534,7 +534,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
                             .append(entry.getValue()).append(" algorithm(s)\n");
                 });
 
-        analysis.append("\n🏆 PERFORMANCE RANKINGS:\n");
+        analysis.append("\nPERFORMANCE RANKINGS:\n");
         analysis.append("-".repeat(22)).append("\n");
 
         // Best performers by category
@@ -556,7 +556,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
                     });
         }
 
-        analysis.append("\n💡 KEY INSIGHTS:\n");
+        analysis.append("\nKEY INSIGHTS:\n");
         analysis.append("-".repeat(15)).append("\n");
         analysis.append("• Merge Sort offers the most consistent performance (always O(n log n))\n");
         analysis.append("• Quick Sort has best average case but worst case can be O(n²)\n");
@@ -564,7 +564,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         analysis.append("• Bubble Sort and Selection Sort should be avoided for large datasets\n");
         analysis.append("• Insertion Sort is surprisingly efficient for small datasets\n");
 
-        analysis.append("\n🎯 ALGORITHM SELECTION GUIDE:\n");
+        analysis.append("\nALGORITHM SELECTION GUIDE:\n");
         analysis.append("-".repeat(28)).append("\n");
         analysis.append("• Small datasets (n < 100): Insertion Sort\n");
         analysis.append("• Need stability: Merge Sort\n");
@@ -573,7 +573,7 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
         analysis.append("• Memory constrained: Heap Sort (in-place)\n");
         analysis.append("• Educational purposes: Bubble Sort (simple to understand)\n");
 
-        analysis.append("\n⚠️ COMPLEXITY WARNINGS:\n");
+        analysis.append("\nCOMPLEXITY WARNINGS:\n");
         analysis.append("-".repeat(20)).append("\n");
         analysis.append("• O(n²) algorithms become impractical for n > 10,000\n");
         analysis.append("• Quick Sort's worst case O(n²) occurs with poor pivot selection\n");
@@ -597,28 +597,28 @@ public class AlgorithmComplexityAnalyzer extends JFrame {
     }
 
     void showDefaultAnalysis() {
-        String defaultText = "🔬 ALGORITHM COMPLEXITY ANALYZER\n\n" +
+        String defaultText = "ALGORITHM COMPLEXITY ANALYZER\n\n" +
                 "Welcome to the comprehensive algorithm analysis tool!\n\n" +
-                "📊 FEATURES:\n" +
+                "FEATURES:\n" +
                 "• Compare time complexities across different algorithms\n" +
                 "• Filter by category (Prime Numbers, Sorting)\n" +
                 "• Visual complexity ranking with color coding\n" +
                 "• Detailed analysis and recommendations\n\n" +
-                "🎯 HOW TO USE:\n" +
+                "HOW TO USE:\n" +
                 "1. Browse the algorithm table above\n" +
                 "2. Use filters to narrow down algorithms\n" +
                 "3. Select multiple algorithms and click 'Compare Selected'\n" +
                 "4. Click 'Analyze All' for comprehensive insights\n\n" +
-                "💡 TIP: Algorithms are color-coded by complexity:\n" +
+                "TIP: Algorithms are color-coded by complexity:\n" +
                 "Green = Excellent, Blue = Very Good, Yellow = Acceptable, Red = Poor\n\n" +
                 "Select algorithms from the table above to begin comparison!";
 
         analysisArea.setText(defaultText);
 
-        String comparisonText = "⚔️ ALGORITHM COMPARISON\n\n" +
+        String comparisonText = "ALGORITHM COMPARISON\n\n" +
                 "Select 2 or more algorithms from the table above and click\n" +
                 "'Compare Selected' to see detailed comparisons.\n\n" +
-                "🔍 COMPARISON FEATURES:\n" +
+                "COMPARISON FEATURES:\n" +
                 "• Side-by-side complexity analysis\n" +
                 "• Best and worst performers identification\n" +
                 "• Category-specific recommendations\n" +
