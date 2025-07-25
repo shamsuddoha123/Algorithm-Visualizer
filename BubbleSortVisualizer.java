@@ -57,7 +57,7 @@ public class BubbleSortVisualizer extends JFrame {
     }
 
     void initializeGUI() {
-        setTitle("🫧 Bubble Sort Visualizer - Animated Bubbles");
+        setTitle("Bubble Sort Visualizer - Animated Bubbles");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout(10, 10));
@@ -93,7 +93,7 @@ public class BubbleSortVisualizer extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 90));
 
-        JLabel titleLabel = new JLabel("🫧 BUBBLE SORT VISUALIZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("BUBBLE SORT VISUALIZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(25, 0, 15, 0));
@@ -104,11 +104,11 @@ public class BubbleSortVisualizer extends JFrame {
         controlPanel.setBackground(new Color(240, 248, 255));
         controlPanel.setPreferredSize(new Dimension(0, 100));
 
-        startButton = createStyledButton("▶ Start Bubble Sort", new Color(50, 205, 50));
-        resetButton = createStyledButton("🔄 Reset Array", new Color(70, 130, 180));
-        customInputButton = createStyledButton("⚙ Custom Input", new Color(138, 43, 226));
+        startButton = createStyledButton("Start Bubble Sort", new Color(50, 205, 50));
+        resetButton = createStyledButton("Reset Array", new Color(70, 130, 180));
+        customInputButton = createStyledButton("Custom Input", new Color(138, 43, 226));
 
-        speedLabel = new JLabel("🫧 Animation Speed:");
+        speedLabel = new JLabel("Animation Speed:");
         speedLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         speedLabel.setForeground(new Color(25, 25, 112));
 
@@ -175,7 +175,7 @@ public class BubbleSortVisualizer extends JFrame {
         arrayScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         arrayScrollPane.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(70, 130, 180), 3),
-                "🫧 Bubble Array - Watch the Bubbles Float and Swap!",
+                "Bubble Array - Watch the Bubbles Float and Swap!",
                 0, 0, new Font("Segoe UI", Font.BOLD, 16), new Color(70, 130, 180)
         ));
 
@@ -189,12 +189,12 @@ public class BubbleSortVisualizer extends JFrame {
         statusPanel.setBackground(Color.WHITE);
         statusPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(70, 130, 180), 2),
-                "📊 Bubble Status",
+                "Bubble Status",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(70, 130, 180)
         ));
         statusPanel.setPreferredSize(new Dimension(450, 140));
 
-        statusLabel = new JLabel("<html><center>🫧 Ready to bubble!<br>Click 'Start Bubble Sort' to begin<br><br>Comparisons: 0 | Swaps: 0</center></html>", JLabel.CENTER);
+        statusLabel = new JLabel("<html><center>Ready to bubble!<br>Click 'Start Bubble Sort' to begin<br><br>Comparisons: 0 | Swaps: 0</center></html>", JLabel.CENTER);
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         statusLabel.setForeground(new Color(25, 25, 112));
         statusLabel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
@@ -204,7 +204,7 @@ public class BubbleSortVisualizer extends JFrame {
         explanationPanel = new JPanel(new BorderLayout());
         explanationPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(50, 205, 50), 2),
-                "📚 Bubble Sort Algorithm Explanation",
+                "Bubble Sort Algorithm Explanation",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(50, 205, 50)
         ));
         explanationPanel.setBackground(Color.WHITE);
@@ -253,14 +253,30 @@ public class BubbleSortVisualizer extends JFrame {
             }
         });
 
-        animationTimer = new Timer(50, new ActionListener() {
+        // FIX: Create timer with dynamic delay based on speed slider
+        animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 performBubbleSortStep();
             }
         });
 
+        // FIX: Add change listener to speed slider to update timer delay
+        speedSlider.addChangeListener(e -> {
+            if (animationTimer != null) {
+                animationTimer.setDelay(getAnimationDelay());
+            }
+        });
+
         updateInitialExplanation();
         setVisible(true);
+    }
+
+    // FIX: Add method to calculate animation delay based on slider value
+    private int getAnimationDelay() {
+        // Convert slider value (1-10) to delay (200ms-20ms)
+        // Higher slider value = faster animation = lower delay
+        int sliderValue = speedSlider.getValue();
+        return 220 - (sliderValue * 20); // Range: 200ms (slow) to 20ms (fast)
     }
 
     JButton createStyledButton(String text, Color color) {
@@ -317,7 +333,7 @@ public class BubbleSortVisualizer extends JFrame {
         animationProgress = 0.0;
         needsSwap = false;
 
-        statusLabel.setText("<html><center>🫧 Ready to bubble!<br>Click 'Start Bubble Sort' to begin<br><br>Comparisons: 0 | Swaps: 0</center></html>");
+        statusLabel.setText("<html><center>Ready to bubble!<br>Click 'Start Bubble Sort' to begin<br><br>Comparisons: 0 | Swaps: 0</center></html>");
         stepLabel.setText("Step: 0 / " + totalSteps);
         passLabel.setText("Pass: 0 / " + totalPasses);
     }
@@ -332,7 +348,7 @@ public class BubbleSortVisualizer extends JFrame {
             animationTimer.stop();
         }
         generateRandomArray(arraySize);
-        startButton.setText("▶ Start Bubble Sort");
+        startButton.setText("Start Bubble Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(50, 205, 50));
     }
@@ -357,19 +373,19 @@ public class BubbleSortVisualizer extends JFrame {
         inputPanel.add(elementsField);
 
         int result = JOptionPane.showConfirmDialog(this, inputPanel,
-                "🫧 Custom Bubble Sort Input", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                "Custom Bubble Sort Input", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
                 int size = Integer.parseInt(sizeField.getText().trim());
                 if (size < 4 || size > 20) {
-                    JOptionPane.showMessageDialog(this, "❌ Size must be between 4 and 20");
+                    JOptionPane.showMessageDialog(this, "Size must be between 4 and 20");
                     return;
                 }
 
                 String[] elements = elementsField.getText().trim().split("\\s+");
                 if (elements.length != size) {
-                    JOptionPane.showMessageDialog(this, "❌ Please enter exactly " + size + " numbers");
+                    JOptionPane.showMessageDialog(this, "Please enter exactly " + size + " numbers");
                     return;
                 }
 
@@ -377,8 +393,9 @@ public class BubbleSortVisualizer extends JFrame {
                 array = new int[arraySize];
                 for (int i = 0; i < arraySize; i++) {
                     array[i] = Integer.parseInt(elements[i]);
-                    if (array[i] < 1 || array[i] > 999) {
-                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between 1 and 999");
+                    // FIX: Allow 0 and negative numbers, adjust range
+                    if (array[i] < -999 || array[i] > 999) {
+                        JOptionPane.showMessageDialog(this, "❌ Numbers must be between -999 and 999");
                         return;
                     }
                 }
@@ -388,7 +405,7 @@ public class BubbleSortVisualizer extends JFrame {
                 repaint();
 
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "❌ Please enter valid numbers");
+                JOptionPane.showMessageDialog(this, "Please enter valid numbers");
             }
         }
     }
@@ -397,14 +414,16 @@ public class BubbleSortVisualizer extends JFrame {
         if (isAnimating) return;
 
         isAnimating = true;
-        startButton.setText("🫧 Bubbling...");
+        startButton.setText("Bubbling...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(255, 69, 0));
 
+        // FIX: Update timer delay when starting animation
+        animationTimer.setDelay(getAnimationDelay());
         animationTimer.start();
 
-        statusLabel.setText("<html><center>🚀 Bubble Sort Started!<br>Bubbles are floating up...<br><br>Comparisons: 0 | Swaps: 0</center></html>");
-        updateExplanation("🫧 BUBBLE SORT STARTED!\n\n" +
+        statusLabel.setText("<html><center>Bubble Sort Started!<br>Bubbles are floating up...<br><br>Comparisons: 0 | Swaps: 0</center></html>");
+        updateExplanation("BUBBLE SORT STARTED!\n\n" +
                 "Bubble Sort works like bubbles floating to the surface!\n" +
                 "Larger bubbles (bigger numbers) will slowly float up to the top,\n" +
                 "while smaller bubbles sink down.\n\n" +
@@ -443,12 +462,12 @@ public class BubbleSortVisualizer extends JFrame {
                 currentStep++;
                 stepLabel.setText("Step: " + currentStep + " / " + totalSteps);
 
-                statusLabel.setText("<html><center>🔍 Comparing bubbles " + array[compareIndex1] +
+                statusLabel.setText("<html><center>Comparing bubbles " + array[compareIndex1] +
                         " and " + array[compareIndex2] + "<br>" +
                         (needsSwap ? "💫 Bubbles will swap!" : "✅ Bubbles stay in place") +
                         "<br><br>Comparisons: " + comparisons + " | Swaps: " + swaps + "</center></html>");
 
-                updateExplanation("🔍 COMPARING BUBBLES\n\n" +
+                updateExplanation("COMPARING BUBBLES\n\n" +
                         "Pass " + (currentPass + 1) + " of " + totalPasses + "\n" +
                         "Comparing position " + compareIndex1 + " and " + compareIndex2 + "\n\n" +
                         "Bubble values:\n" +
@@ -457,9 +476,9 @@ public class BubbleSortVisualizer extends JFrame {
                         "COMPARISON RESULT:\n" +
                         (needsSwap ?
                                 "Left bubble (" + array[compareIndex1] + ") > Right bubble (" + array[compareIndex2] + ")\n" +
-                                        "💫 SWAP NEEDED! The bigger bubble will float up!" :
+                                        "SWAP NEEDED! The bigger bubble will float up!" :
                                 "Left bubble (" + array[compareIndex1] + ") ≤ Right bubble (" + array[compareIndex2] + ")\n" +
-                                        "✅ NO SWAP NEEDED! Bubbles are in correct order.") + "\n\n" +
+                                        "NO SWAP NEEDED! Bubbles are in correct order.") + "\n\n" +
                         "Watch the bubble animation...\n\n" +
                         "Statistics:\n" +
                         "• Comparisons so far: " + comparisons + "\n" +
@@ -475,11 +494,11 @@ public class BubbleSortVisualizer extends JFrame {
                     // Sorting complete
                     animationTimer.stop();
                     isAnimating = false;
-                    startButton.setText("✅ Completed");
+                    startButton.setText("Completed");
                     startButton.setBackground(new Color(50, 205, 50));
-                    statusLabel.setText("<html><center>🎉 Bubble Sort Complete!<br>All bubbles are sorted!<br><br>Comparisons: " +
+                    statusLabel.setText("<html><center>Bubble Sort Complete!<br>All bubbles are sorted!<br><br>Comparisons: " +
                             comparisons + " | Swaps: " + swaps + "</center></html>");
-                    updateExplanation("🎉 BUBBLE SORT COMPLETED!\n\n" +
+                    updateExplanation("BUBBLE SORT COMPLETED!\n\n" +
                             "Congratulations! All bubbles have found their correct positions!\n\n" +
                             "FINAL STATISTICS:\n" +
                             "• Total comparisons: " + comparisons + "\n" +
@@ -509,7 +528,7 @@ public class BubbleSortVisualizer extends JFrame {
                     repaint();
                     return;
                 } else {
-                    statusLabel.setText("<html><center>✅ Pass " + currentPass + " completed!<br>Starting pass " +
+                    statusLabel.setText("<html><center>Pass " + currentPass + " completed!<br>Starting pass " +
                             (currentPass + 1) + "...<br><br>Comparisons: " + comparisons + " | Swaps: " + swaps + "</center></html>");
                 }
             }
@@ -608,7 +627,7 @@ public class BubbleSortVisualizer extends JFrame {
         // Draw title
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 20));
         g2d.setColor(new Color(25, 25, 112));
-        String title = "🫧 Bubble Sort - Watch the Bubbles Float and Swap!";
+        String title = "Bubble Sort - Watch the Bubbles Float and Swap!";
         FontMetrics fm = g2d.getFontMetrics();
         int titleX = (panelWidth - fm.stringWidth(title)) / 2;
         g2d.drawString(title, titleX, 40);
@@ -747,7 +766,6 @@ public class BubbleSortVisualizer extends JFrame {
 
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 12));
         g2d.setColor(new Color(25, 25, 112));
-        g2d.drawString("Legend:", legendX, legendY);
 
         legendY += 20;
         for (int i = 0; i < labels.length; i++) {
@@ -766,7 +784,7 @@ public class BubbleSortVisualizer extends JFrame {
     }
 
     void updateInitialExplanation() {
-        updateExplanation("🫧 BUBBLE SORT ALGORITHM\n\n" +
+        updateExplanation("BUBBLE SORT ALGORITHM\n\n" +
                 "Bubble Sort is like watching bubbles float to the surface of water!\n" +
                 "It's one of the simplest sorting algorithms to understand.\n\n" +
                 "HOW IT WORKS:\n" +
