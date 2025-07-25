@@ -59,7 +59,7 @@ public class PrimeNumberVisualizer extends JFrame {
     }
 
     void initializeGUI() {
-        setTitle("🔢 Prime Number Visualizer - Interactive Learning Tool");
+        setTitle("Prime Number Visualizer - Interactive Learning Tool");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout(5, 5));
@@ -68,10 +68,25 @@ public class PrimeNumberVisualizer extends JFrame {
         createHeaderPanel();
         createMainLayout();
 
-        // Animation timer
-        animationTimer = new javax.swing.Timer(500, e -> performAnimationStep());
+        // FIX: Create animation timer with dynamic delay based on speed slider
+        animationTimer = new javax.swing.Timer(getAnimationDelay(), e -> performAnimationStep());
+
+        // FIX: Add change listener to speed slider to update timer delay
+        speedSlider.addChangeListener(e -> {
+            if (animationTimer != null) {
+                animationTimer.setDelay(getAnimationDelay());
+            }
+        });
 
         setVisible(true);
+    }
+
+    // FIX: Add method to calculate animation delay based on slider value
+    private int getAnimationDelay() {
+        // Convert slider value (1-10) to delay (1000ms-100ms)
+        // Higher slider value = faster animation = lower delay
+        int sliderValue = speedSlider.getValue();
+        return 1100 - (sliderValue * 100); // Range: 1000ms (slow) to 100ms (fast)
     }
 
     void createHeaderPanel() {
@@ -100,7 +115,7 @@ public class PrimeNumberVisualizer extends JFrame {
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(0, 60)); // Reduced from 100 to 60
 
-        JLabel titleLabel = new JLabel("🔢 PRIME NUMBER VISUALIZER", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("PRIME NUMBER VISUALIZER", JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24)); // Reduced from 36 to 24
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0)); // Reduced padding
@@ -140,7 +155,7 @@ public class PrimeNumberVisualizer extends JFrame {
         controlPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                        "🎛️ Controls",
+                        "Controls",
                         0, 0, new Font("Segoe UI", Font.BOLD, 12), new Color(52, 152, 219)
                 ),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
@@ -149,10 +164,10 @@ public class PrimeNumberVisualizer extends JFrame {
         // Mode Section
         JPanel modeSection = createSection("Mode & Algorithm");
 
-        switchModeButton = createCompactButton("🔄 Switch Mode", new Color(155, 89, 182));
+        switchModeButton = createCompactButton("Switch Mode", new Color(155, 89, 182));
         switchModeButton.addActionListener(e -> switchMode());
 
-        modeLabel = new JLabel("📊 Range Analysis");
+        modeLabel = new JLabel("Range Analysis");
         modeLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
         modeLabel.setForeground(new Color(44, 62, 80));
 
@@ -233,10 +248,10 @@ public class PrimeNumberVisualizer extends JFrame {
         // Action Buttons Section
         JPanel buttonSection = createSection("Actions");
 
-        startButton = createCompactButton("▶ Start Analysis", new Color(46, 204, 113));
+        startButton = createCompactButton("Start Analysis", new Color(46, 204, 113));
         startButton.addActionListener(e -> startAnalysis());
 
-        resetButton = createCompactButton("🔄 Reset", new Color(52, 152, 219));
+        resetButton = createCompactButton("Reset", new Color(52, 152, 219));
         resetButton.addActionListener(e -> resetVisualization());
 
         buttonSection.add(startButton);
@@ -324,7 +339,7 @@ public class PrimeNumberVisualizer extends JFrame {
         visualizationScrollPane = new JScrollPane(visualizationPanel);
         visualizationScrollPane.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(52, 152, 219), 2),
-                "🎨 Prime Number Visualization",
+                "Prime Number Visualization",
                 0, 0, new Font("Segoe UI", Font.BOLD, 14), new Color(52, 152, 219)
         ));
         visualizationScrollPane.setPreferredSize(new Dimension(800, 600)); // Large visualization area
@@ -345,12 +360,12 @@ public class PrimeNumberVisualizer extends JFrame {
         statusPanel.setBackground(Color.WHITE);
         statusPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
-                "📊 Status",
+                "Status",
                 0, 0, new Font("Segoe UI", Font.BOLD, 11), new Color(46, 204, 113)
         ));
         statusPanel.setPreferredSize(new Dimension(350, 70)); // Smaller height
 
-        statusLabel = new JLabel("<html><center>🎯 Ready to analyze!<br>Click Start to begin</center></html>", JLabel.CENTER);
+        statusLabel = new JLabel("<html><center>Ready to analyze!<br>Click Start to begin</center></html>", JLabel.CENTER);
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
         statusLabel.setForeground(new Color(44, 62, 80));
         statusPanel.add(statusLabel, BorderLayout.CENTER);
@@ -360,12 +375,12 @@ public class PrimeNumberVisualizer extends JFrame {
         performancePanel.setBackground(Color.WHITE);
         performancePanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(155, 89, 182), 2),
-                "⚡ Performance Metrics",
+                "Performance Metrics",
                 0, 0, new Font("Segoe UI", Font.BOLD, 11), new Color(155, 89, 182)
         ));
         performancePanel.setPreferredSize(new Dimension(350, 150)); // Bigger height
 
-        performanceLabel = new JLabel("<html><center>⏱️ Execution Time: --<br>🔍 Numbers Checked: --<br>✅ Primes Found: --<br>📈 Progress: --<br>🧮 Algorithm: " + currentAlgorithm + "</center></html>", JLabel.CENTER);
+        performanceLabel = new JLabel("<html><center>Execution Time: --<br>Numbers Checked: --<br>Primes Found: --<br>Progress: --<br>Algorithm: " + currentAlgorithm + "</center></html>", JLabel.CENTER);
         performanceLabel.setFont(new Font("Segoe UI", Font.BOLD, 10));
         performanceLabel.setForeground(new Color(44, 62, 80));
 
@@ -385,7 +400,7 @@ public class PrimeNumberVisualizer extends JFrame {
         JPanel stepsPanel = new JPanel(new BorderLayout());
         stepsPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(231, 76, 60), 2),
-                "📚 Step-by-Step Process",
+                "Step-by-Step Process",
                 0, 0, new Font("Segoe UI", Font.BOLD, 11), new Color(231, 76, 60)
         ));
         stepsPanel.setPreferredSize(new Dimension(350, 200)); // Bigger height
@@ -407,7 +422,7 @@ public class PrimeNumberVisualizer extends JFrame {
         JPanel resultsSubPanel = new JPanel(new BorderLayout());
         resultsSubPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(46, 204, 113), 2),
-                "🎯 Results",
+                "Results",
                 0, 0, new Font("Segoe UI", Font.BOLD, 11), new Color(46, 204, 113)
         ));
 
@@ -438,8 +453,8 @@ public class PrimeNumberVisualizer extends JFrame {
 
         if (isMode1) {
             // Switch to Range Mode
-            switchModeButton.setText("🔄 Switch Mode");
-            modeLabel.setText("📊 Range Analysis");
+            switchModeButton.setText("Switch Mode");
+            modeLabel.setText("Range Analysis");
 
             // Show range components
             rangeFromLabel.setVisible(true);
@@ -455,8 +470,8 @@ public class PrimeNumberVisualizer extends JFrame {
             initializeMode1();
         } else {
             // Switch to Single Number Mode
-            switchModeButton.setText("🔄 Switch Mode");
-            modeLabel.setText("🎯 Single Number Check");
+            switchModeButton.setText("Switch Mode");
+            modeLabel.setText("Single Number Check");
 
             // Hide range components
             rangeFromLabel.setVisible(false);
@@ -522,7 +537,7 @@ public class PrimeNumberVisualizer extends JFrame {
         }
 
         resetAnimationVariables();
-        updateStepsArea("🔢 PRIME NUMBER RANGE ANALYSIS\n\n" +
+        updateStepsArea("PRIME NUMBER RANGE ANALYSIS\n\n" +
                 "Ready to analyze numbers from " + lowerBound + " to " + upperBound + "\n" +
                 "Algorithm: " + currentAlgorithm + "\n\n" +
                 "Click 'Start Analysis' to begin the visualization!");
@@ -540,7 +555,7 @@ public class PrimeNumberVisualizer extends JFrame {
         currentDivisor = 2;
         isPrimeResult = true;
         resetAnimationVariables();
-        updateStepsArea("🎯 SINGLE NUMBER PRIME CHECK\n\n" +
+        updateStepsArea("SINGLE NUMBER PRIME CHECK\n\n" +
                 "Ready to check if " + targetNumber + " is prime\n" +
                 "Algorithm: " + currentAlgorithm + "\n\n" +
                 "Enter a number in the field above and click 'Start Analysis' to begin!");
@@ -571,19 +586,19 @@ public class PrimeNumberVisualizer extends JFrame {
         }
 
         isAnimating = true;
-        startButton.setText("⏸ Analyzing...");
+        startButton.setText("Analyzing...");
         startButton.setEnabled(false);
 
         startTime = System.currentTimeMillis();
 
-        int delay = 1100 - (speedSlider.getValue() * 100);
-        animationTimer.setDelay(delay);
+        // FIX: Update timer delay when starting animation
+        animationTimer.setDelay(getAnimationDelay());
         animationTimer.start();
 
         if (isMode1) {
-            statusLabel.setText("<html><center>🚀 Analyzing range<br>" + lowerBound + " to " + upperBound + "</center></html>");
+            statusLabel.setText("<html><center>Analyzing range<br>" + lowerBound + " to " + upperBound + "</center></html>");
         } else {
-            statusLabel.setText("<html><center>🔍 Checking number<br>" + targetNumber + "</center></html>");
+            statusLabel.setText("<html><center>Checking number<br>" + targetNumber + "</center></html>");
         }
 
         resultsArea.setText("");
@@ -595,7 +610,7 @@ public class PrimeNumberVisualizer extends JFrame {
         }
 
         isAnimating = false;
-        startButton.setText("▶ Start Analysis");
+        startButton.setText("Start Analysis");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
 
@@ -605,8 +620,8 @@ public class PrimeNumberVisualizer extends JFrame {
             initializeMode2();
         }
 
-        statusLabel.setText("<html><center>🎯 Ready!<br>Click Start</center></html>");
-        performanceLabel.setText("<html><center>⏱️ Execution Time: --<br>🔍 Numbers Checked: --<br>✅ Primes Found: --<br>📈 Progress: --<br>🧮 Algorithm: " + currentAlgorithm + "</center></html>");
+        statusLabel.setText("<html><center>Ready!<br>Click Start</center></html>");
+        performanceLabel.setText("<html><center>Execution Time: --<br>Numbers Checked: --<br>Primes Found: --<br>Progress: --<br>Algorithm: " + currentAlgorithm + "</center></html>");
         resultsArea.setText("");
 
         visualizationPanel.repaint();
@@ -639,7 +654,7 @@ public class PrimeNumberVisualizer extends JFrame {
 
         if (currentNumber < 2) {
             isPrime[index] = false;
-            updateStepsArea("🔍 CHECKING NUMBER: " + currentNumber + "\n\n" +
+            updateStepsArea("CHECKING NUMBER: " + currentNumber + "\n\n" +
                     "Numbers less than 2 are not prime by definition.\n" +
                     currentNumber + " is NOT PRIME.\n\n" +
                     "Moving to next number...");
@@ -649,12 +664,12 @@ public class PrimeNumberVisualizer extends JFrame {
 
             if (isPrimeNumber) {
                 foundPrimes.add(currentNumber);
-                updateStepsArea("✅ PRIME FOUND: " + currentNumber + "\n\n" +
+                updateStepsArea("PRIME FOUND: " + currentNumber + "\n\n" +
                         "Checked all divisors from 2 to √" + currentNumber + "\n" +
                         "No divisors found - " + currentNumber + " is PRIME!\n\n" +
                         "Total primes found so far: " + foundPrimes.size());
             } else {
-                updateStepsArea("❌ COMPOSITE NUMBER: " + currentNumber + "\n\n" +
+                updateStepsArea("COMPOSITE NUMBER: " + currentNumber + "\n\n" +
                         "Found a divisor - " + currentNumber + " is NOT PRIME.\n\n" +
                         "Moving to next number...");
             }
@@ -665,12 +680,12 @@ public class PrimeNumberVisualizer extends JFrame {
         // Update performance metrics
         int checked = currentNumber - lowerBound;
         int progress = (checked * 100) / (upperBound - lowerBound + 1);
-        performanceLabel.setText("<html><center>⏱️ Time: " +
+        performanceLabel.setText("<html><center>Time: " +
                 (System.currentTimeMillis() - startTime) + "ms<br>" +
-                "🔍 Checked: " + checked + "/" + (upperBound - lowerBound + 1) + "<br>" +
-                "✅ Primes: " + foundPrimes.size() + "<br>" +
-                "📈 Progress: " + progress + "%<br>" +
-                "🧮 Algorithm: " + currentAlgorithm + "<br>" +
+                "Numbers Checked: " + checked + "/" + (upperBound - lowerBound + 1) + "<br>" +
+                "Primes Found: " + foundPrimes.size() + "<br>" +
+                "Progress: " + progress + "%<br>" +
+                "Algorithm: " + currentAlgorithm + "<br>" +
                 "🎯 Current: " + (currentNumber - 1) + "</center></html>");
     }
 
@@ -699,7 +714,7 @@ public class PrimeNumberVisualizer extends JFrame {
                     foundPrimes.add(sieveCurrentPrime);
                 }
 
-                updateStepsArea("🎯 SIEVE STEP: Found Prime " + sieveCurrentPrime + "\n\n" +
+                updateStepsArea("SIEVE STEP: Found Prime " + sieveCurrentPrime + "\n\n" +
                         "Now marking all multiples of " + sieveCurrentPrime + " as composite.\n" +
                         "Starting from " + sieveCurrentPrime + "² = " + (sieveCurrentPrime * sieveCurrentPrime) + "\n\n" +
                         "Multiples to mark: ");
@@ -718,7 +733,7 @@ public class PrimeNumberVisualizer extends JFrame {
                     isPrime[index] = false;
                     markingIndex = index;
 
-                    updateStepsArea("❌ MARKING COMPOSITE: " + currentMultiple + "\n\n" +
+                    updateStepsArea("MARKING COMPOSITE: " + currentMultiple + "\n\n" +
                             "Marking " + currentMultiple + " as composite (multiple of " + sieveCurrentPrime + ")\n" +
                             "Next multiple: " + (currentMultiple + sieveCurrentPrime) + "\n\n" +
                             "Primes found so far: " + foundPrimes.size());
@@ -739,12 +754,12 @@ public class PrimeNumberVisualizer extends JFrame {
         }
         totalProcessed += foundPrimes.size();
 
-        performanceLabel.setText("<html><center>⏱️ Time: " +
+        performanceLabel.setText("<html><center>Time: " +
                 (System.currentTimeMillis() - startTime) + "ms<br>" +
-                "🔍 Processed: " + totalProcessed + "<br>" +
-                "✅ Primes: " + foundPrimes.size() + "<br>" +
-                "📈 Current Prime: " + sieveCurrentPrime + "<br>" +
-                "🧮 Algorithm: " + currentAlgorithm + "<br>" +
+                "Numbers Checked: " + totalProcessed + "<br>" +
+                "Primes Found: " + foundPrimes.size() + "<br>" +
+                "Progress: Current Prime: " + sieveCurrentPrime + "<br>" +
+                "Algorithm: " + currentAlgorithm + "<br>" +
                 "🎯 Marking: " + (markingIndex >= 0 ? numbers[markingIndex] : "--") + "</center></html>");
     }
 
@@ -758,7 +773,7 @@ public class PrimeNumberVisualizer extends JFrame {
         if (targetNumber % currentDivisor == 0) {
             // Found a divisor - not prime
             isPrimeResult = false;
-            updateStepsArea("❌ DIVISOR FOUND!\n\n" +
+            updateStepsArea("DIVISOR FOUND!\n\n" +
                     "Checking: " + targetNumber + " ÷ " + currentDivisor + " = " + (targetNumber / currentDivisor) + "\n" +
                     "Remainder: " + (targetNumber % currentDivisor) + "\n\n" +
                     "Since " + targetNumber + " is divisible by " + currentDivisor + ",\n" +
@@ -767,7 +782,7 @@ public class PrimeNumberVisualizer extends JFrame {
             completeAnalysis();
             return;
         } else {
-            updateStepsArea("✅ CHECKING DIVISOR: " + currentDivisor + "\n\n" +
+            updateStepsArea("CHECKING DIVISOR: " + currentDivisor + "\n\n" +
                     "Testing: " + targetNumber + " ÷ " + currentDivisor + "\n" +
                     "Result: " + (targetNumber / currentDivisor) + " remainder " + (targetNumber % currentDivisor) + "\n\n" +
                     "Since remainder ≠ 0, " + currentDivisor + " is not a divisor.\n" +
@@ -781,13 +796,13 @@ public class PrimeNumberVisualizer extends JFrame {
         // Update performance
         int maxDivisor = (int) Math.sqrt(targetNumber) + 1;
         int progress = Math.min(100, (currentDivisor - 2) * 100 / (maxDivisor - 2));
-        performanceLabel.setText("<html><center>⏱️ Time: " +
+        performanceLabel.setText("<html><center>Time: " +
                 (System.currentTimeMillis() - startTime) + "ms<br>" +
-                "🔍 Divisors Checked: " + (currentDivisor - 2) + "<br>" +
-                "🎯 Testing: " + targetNumber + "<br>" +
-                "📈 Progress: " + progress + "%<br>" +
-                "🧮 Algorithm: " + currentAlgorithm + "<br>" +
-                "🔢 Current Divisor: " + (currentDivisor - 1) + "</center></html>");
+                "Numbers Checked: Divisors Checked: " + (currentDivisor - 2) + "<br>" +
+                "Primes Found: 🎯 Testing: " + targetNumber + "<br>" +
+                "Progress: " + progress + "%<br>" +
+                "Algorithm: " + currentAlgorithm + "<br>" +
+                "🎯 Current Divisor: " + (currentDivisor - 1) + "</center></html>");
     }
 
     boolean checkIfPrime(int number) {
@@ -806,7 +821,7 @@ public class PrimeNumberVisualizer extends JFrame {
         isAnimating = false;
         endTime = System.currentTimeMillis();
 
-        startButton.setText("✅ Completed");
+        startButton.setText("Completed");
         startButton.setBackground(new Color(46, 204, 113));
 
         if (isMode1) {
@@ -818,17 +833,17 @@ public class PrimeNumberVisualizer extends JFrame {
                 if ((i + 1) % 10 == 0) primesText.append("\n");
             }
 
-            resultsArea.setText("🎯 PRIME NUMBERS FOUND:\n\n" + primesText.toString() +
-                    "\n\n📊 SUMMARY:\n" +
+            resultsArea.setText("PRIME NUMBERS FOUND:\n\n" + primesText.toString() +
+                    "\n\nSUMMARY:\n" +
                     "• Range: " + lowerBound + " to " + upperBound + "\n" +
                     "• Total numbers: " + (upperBound - lowerBound + 1) + "\n" +
                     "• Prime numbers: " + foundPrimes.size() + "\n" +
                     "• Algorithm: " + currentAlgorithm + "\n" +
                     "• Execution time: " + (endTime - startTime) + "ms");
 
-            statusLabel.setText("<html><center>🎉 Complete!<br>" + foundPrimes.size() + " primes found</center></html>");
+            statusLabel.setText("<html><center>Complete!<br>" + foundPrimes.size() + " primes found</center></html>");
 
-            updateStepsArea("🎉 ANALYSIS COMPLETED!\n\n" +
+            updateStepsArea("ANALYSIS COMPLETED!\n\n" +
                     "Successfully analyzed all numbers from " + lowerBound + " to " + upperBound + "\n\n" +
                     "RESULTS SUMMARY:\n" +
                     "• Algorithm used: " + currentAlgorithm + "\n" +
@@ -844,7 +859,7 @@ public class PrimeNumberVisualizer extends JFrame {
             String result = isPrimeResult ? "PRIME" : "NOT PRIME";
             String emoji = isPrimeResult ? "✅" : "❌";
 
-            resultsArea.setText("🎯 PRIME CHECK RESULT:\n\n" +
+            resultsArea.setText("PRIME CHECK RESULT:\n\n" +
                     "Number tested: " + targetNumber + "\n" +
                     "Result: " + targetNumber + " is " + result + " " + emoji + "\n\n" +
                     "📊 ANALYSIS DETAILS:\n" +
@@ -857,9 +872,9 @@ public class PrimeNumberVisualizer extends JFrame {
                             "❌ Found divisor: " + (currentDivisor - 1) + "\n" +
                                     "Therefore, " + targetNumber + " is NOT PRIME."));
 
-            statusLabel.setText("<html><center>" + emoji + " " + result + "!<br>Check completed</center></html>");
+            statusLabel.setText("<html><center>" + result + "!<br>Check completed</center></html>");
 
-            updateStepsArea("🎉 PRIME CHECK COMPLETED!\n\n" +
+            updateStepsArea("PRIME CHECK COMPLETED!\n\n" +
                     "Number: " + targetNumber + "\n" +
                     "Result: " + result + " " + emoji + "\n\n" +
                     "ANALYSIS SUMMARY:\n" +
@@ -875,12 +890,12 @@ public class PrimeNumberVisualizer extends JFrame {
                                     "Since we found a divisor, " + targetNumber + " is composite."));
         }
 
-        performanceLabel.setText("<html><center>⏱️ Total: " + (endTime - startTime) + "ms<br>" +
-                "🔍 Analysis: Complete<br>" +
-                "✅ Status: " + (isMode1 ? foundPrimes.size() + " primes found" :
+        performanceLabel.setText("<html><center>Total: " + (endTime - startTime) + "ms<br>" +
+                "Numbers Checked: Analysis: Complete<br>" +
+                "Primes Found: Status: " + (isMode1 ? foundPrimes.size() + " primes found" :
                 (isPrimeResult ? "Prime" : "Not Prime")) + "<br>" +
-                "📈 Progress: 100%<br>" +
-                "🧮 Algorithm: " + currentAlgorithm + "<br>" +
+                "Progress: 100%<br>" +
+                "Algorithm: " + currentAlgorithm + "<br>" +
                 "🎯 Final Result: Success</center></html>");
 
         highlightedIndex = -1;
@@ -897,7 +912,7 @@ public class PrimeNumberVisualizer extends JFrame {
         // Draw title
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 22));
         g2d.setColor(new Color(44, 62, 80));
-        String title = "🔢 " + currentAlgorithm + " - Range: " + lowerBound + " to " + upperBound;
+        String title = "" + currentAlgorithm + " - Range: " + lowerBound + " to " + upperBound;
         FontMetrics fm = g2d.getFontMetrics();
         int titleX = (panelWidth - fm.stringWidth(title)) / 2;
         g2d.drawString(title, titleX, 40);
@@ -968,7 +983,7 @@ public class PrimeNumberVisualizer extends JFrame {
         // Draw title
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 28));
         g2d.setColor(new Color(44, 62, 80));
-        String title = "🎯 Checking if " + targetNumber + " is Prime";
+        String title = "Checking if " + targetNumber + " is Prime";
         FontMetrics fm = g2d.getFontMetrics();
         int titleX = (panelWidth - fm.stringWidth(title)) / 2;
         g2d.drawString(title, titleX, 60);
@@ -1076,7 +1091,6 @@ public class PrimeNumberVisualizer extends JFrame {
 
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 16));
         g2d.setColor(new Color(44, 62, 80));
-        g2d.drawString("Legend:", legendX, legendY);
 
         legendY += 30;
         for (int i = 0; i < labels.length; i++) {
