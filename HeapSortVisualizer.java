@@ -13,7 +13,7 @@ public class HeapSortVisualizer extends JFrame {
     int arraySize;
     int heapSize;
     JPanel treePanel, arrayPanel, explanationPanel;
-    JButton startButton, resetButton, customInputButton, backButton; // Added backButton
+    JButton startButton, resetButton, customInputButton, backButton, pauseButton;
     JSlider speedSlider;
     JLabel speedLabel, statusLabel, stepLabel;
     JTextArea explanationArea;
@@ -24,6 +24,7 @@ public class HeapSortVisualizer extends JFrame {
     boolean isBuildingHeap = true;
     boolean isExtracting = false;
     int currentBuildIndex; // Index of the root of the subtree to heapify in build phase
+    boolean isPaused = false;
 
     // Highlighting variables
     int heapifyIndex = -1; // Node currently being heapified (root of current heapify operation)
@@ -128,15 +129,7 @@ public class HeapSortVisualizer extends JFrame {
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         headerPanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Control panel (buttons and speed slider)
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        controlPanel.setBackground(new Color(248, 249, 250));
-
-        startButton = createStyledButton("Start Heap Sort", new Color(46, 204, 113));
-        resetButton = createStyledButton("Reset", new Color(52, 152, 219));
-        customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
-        backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
-
+        // Initialize speed components BEFORE using them
         speedLabel = new JLabel("Animation Speed:");
         speedLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         speedLabel.setForeground(new Color(44, 62, 80));
@@ -153,10 +146,22 @@ public class HeapSortVisualizer extends JFrame {
         stepLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         stepLabel.setForeground(new Color(44, 62, 80));
 
+        // Control panel (buttons and speed slider)
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
+        controlPanel.setBackground(new Color(248, 249, 250));
+
+        startButton = createStyledButton("Start Heap Sort", new Color(46, 204, 113));
+        resetButton = createStyledButton("Reset", new Color(52, 152, 219));
+        customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
+        backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
+        pauseButton = createStyledButton("Pause", new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
+
         controlPanel.add(startButton);
         controlPanel.add(resetButton);
         controlPanel.add(customInputButton);
         controlPanel.add(backButton);
+        controlPanel.add(pauseButton);
         controlPanel.add(Box.createHorizontalStrut(30));
         controlPanel.add(speedLabel);
         controlPanel.add(speedSlider);
@@ -312,6 +317,12 @@ public class HeapSortVisualizer extends JFrame {
             }
         });
 
+        pauseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                togglePause();
+            }
+        });
+
         speedSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 int delay = 1200 - (speedSlider.getValue() * 100);
@@ -383,6 +394,7 @@ public class HeapSortVisualizer extends JFrame {
         isExtracting = false;
         currentBuildIndex = arraySize / 2 - 1; // Start from the last non-leaf node
         heapSize = arraySize; // Reset heap size to full array size
+        isPaused = false;
 
         // Clear highlighting variables
         heapifyIndex = -1;
@@ -408,6 +420,10 @@ public class HeapSortVisualizer extends JFrame {
         startButton.setText("Start Heap Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
+        isPaused = false;
     }
 
     void showCustomInputDialog() {
@@ -478,9 +494,13 @@ public class HeapSortVisualizer extends JFrame {
         resetSortingVariables();
 
         isAnimating = true;
+        isPaused = false;
         startButton.setText("Sorting...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
+        pauseButton.setEnabled(true);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
         int delay = 1200 - (speedSlider.getValue() * 100);
         animationTimer.setDelay(delay);
@@ -499,6 +519,8 @@ public class HeapSortVisualizer extends JFrame {
     }
 
     void performHeapSortStep() {
+        if (isPaused) return;
+
         currentStep++;
         stepLabel.setText("Step: " + currentStep + " / " + totalSteps);
 
@@ -706,11 +728,33 @@ public class HeapSortVisualizer extends JFrame {
         }
     }
 
+    void togglePause() {
+        if (!isAnimating) return;
+
+        isPaused = !isPaused;
+
+        if (isPaused) {
+            animationTimer.stop();
+            pauseButton.setText("Resume");
+            pauseButton.setBackground(new Color(46, 204, 113));
+            statusLabel.setText("<html><center>⏸️ Animation Paused<br>Click Resume to continue</center></html>");
+        } else {
+            animationTimer.start();
+            pauseButton.setText("Pause");
+            pauseButton.setBackground(new Color(255, 165, 0));
+            statusLabel.setText("<html><center>▶️ Animation Resumed<br>Building heap...</center></html>");
+        }
+    }
+
     void completeAnalysis() {
         animationTimer.stop();
         isAnimating = false;
         startButton.setText("Completed");
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
+        isPaused = false;
         clearHighlights(); // Clear any remaining highlights
 
         heapSize = 0; // Set heapSize to 0 to ensure all elements are marked as sorted
