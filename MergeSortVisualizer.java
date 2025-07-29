@@ -11,7 +11,7 @@ public class MergeSortVisualizer extends JFrame {
     int arraySize;
     JPanel arrayPanel, explanationPanel;
     JScrollPane arrayScrollPane, explanationScrollPane;
-    JButton startButton, resetButton, customInputButton;
+    JButton startButton, resetButton, customInputButton, pauseButton;
     JSlider speedSlider;
     JLabel speedLabel, statusLabel, stepLabel, phaseLabel;
     JTextArea explanationArea;
@@ -21,6 +21,7 @@ public class MergeSortVisualizer extends JFrame {
     boolean isAnimating = false;
     int currentStep = 0;
     int totalSteps = 0;
+    boolean isPaused = false;
 
     // Merge operation variables
     int mergeLeft = -1;
@@ -106,6 +107,8 @@ public class MergeSortVisualizer extends JFrame {
         startButton = createStyledButton("Start Merge Sort", new Color(46, 204, 113));
         resetButton = createStyledButton("Reset Array", new Color(52, 152, 219));
         customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
+        pauseButton = createStyledButton("Pause", new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
 
         // Add back button after customInputButton
         JButton backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
@@ -120,6 +123,7 @@ public class MergeSortVisualizer extends JFrame {
         controlPanel.add(resetButton);
         controlPanel.add(customInputButton);
         controlPanel.add(backButton); // Add this line
+        controlPanel.add(pauseButton);
         controlPanel.add(Box.createHorizontalStrut(30));
 
         speedLabel = new JLabel("Animation Speed:");
@@ -258,6 +262,12 @@ public class MergeSortVisualizer extends JFrame {
             }
         });
 
+        pauseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                togglePause();
+            }
+        });
+
         // FIX: Create timer with dynamic delay based on speed slider
         animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -323,6 +333,7 @@ public class MergeSortVisualizer extends JFrame {
         isAnimating = false;
         currentStep = 0;
         currentOperationIndex = 0;
+        isPaused = false;
 
         mergeLeft = -1;
         mergeRight = -1;
@@ -338,6 +349,12 @@ public class MergeSortVisualizer extends JFrame {
         statusLabel.setText("<html><center>🎯 Ready to sort!<br>Click 'Start Merge Sort' to begin</center></html>");
         stepLabel.setText("Step: 0 / " + (mergeOperations != null ? mergeOperations.size() : 0));
         phaseLabel.setText("Phase: Ready");
+        startButton.setText("Start Merge Sort");
+        startButton.setEnabled(true);
+        startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
     }
 
     void updatePanelSizes() {
@@ -353,6 +370,10 @@ public class MergeSortVisualizer extends JFrame {
         startButton.setText("Start Merge Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
+        isPaused = false;
     }
 
     void showCustomInputDialog() {
@@ -417,9 +438,13 @@ public class MergeSortVisualizer extends JFrame {
         if (isAnimating) return;
 
         isAnimating = true;
+        isPaused = false;
         startButton.setText("Sorting...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
+        pauseButton.setEnabled(true);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
         // FIX: Update timer delay when starting animation
         animationTimer.setDelay(getAnimationDelay());
@@ -440,13 +465,36 @@ public class MergeSortVisualizer extends JFrame {
                 "Starting merge operations...");
     }
 
+    void togglePause() {
+        if (!isAnimating) return;
+
+        isPaused = !isPaused;
+
+        if (isPaused) {
+            animationTimer.stop();
+            pauseButton.setText("Resume");
+            pauseButton.setBackground(new Color(46, 204, 113));
+            statusLabel.setText("<html><center>⏸️ Animation Paused<br>Click Resume to continue</center></html>");
+        } else {
+            animationTimer.start();
+            pauseButton.setText("Pause");
+            pauseButton.setBackground(new Color(255, 165, 0));
+            statusLabel.setText("<html><center>▶️ Animation Resumed<br>Merging arrays...</center></html>");
+        }
+    }
+
     void performMergeSortStep() {
+        if (isPaused) return;
+
         if (currentOperationIndex >= mergeOperations.size()) {
             // Sorting complete
             animationTimer.stop();
             isAnimating = false;
             startButton.setText("Completed");
             startButton.setBackground(new Color(46, 204, 113));
+            pauseButton.setEnabled(false);
+            pauseButton.setText("Pause");
+            pauseButton.setBackground(new Color(255, 165, 0));
             statusLabel.setText("<html><center>🎉 Merge Sort Complete!<br>Array is now perfectly sorted!</center></html>");
             phaseLabel.setText("Phase: Complete");
             updateExplanation("MERGE SORT COMPLETED!\n\n" +
