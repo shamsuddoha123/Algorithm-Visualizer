@@ -7,7 +7,7 @@ public class QuickSortVisualizer extends JFrame {
     int[] array;
     int arraySize;
     JPanel arrayPanel, explanationPanel, pivotPanel;
-    JButton startButton, resetButton, customInputButton;
+    JButton startButton, resetButton, customInputButton, pauseButton;
     JSlider speedSlider;
     JLabel speedLabel, statusLabel, stepLabel, recursionLabel;
     JTextArea explanationArea;
@@ -16,6 +16,7 @@ public class QuickSortVisualizer extends JFrame {
 
     // Animation variables
     boolean isAnimating = false;
+    boolean isPaused = false;
     int currentLow = 0;
     int currentHigh = 0;
     int pivotIndex = -1;
@@ -127,6 +128,8 @@ public class QuickSortVisualizer extends JFrame {
         startButton = createStyledButton("Start Quick Sort", new Color(46, 204, 113));
         resetButton = createStyledButton("Reset", new Color(52, 152, 219));
         customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
+        pauseButton = createStyledButton("Pause", new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
 
         // Add back button after customInputButton
         JButton backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
@@ -140,7 +143,8 @@ public class QuickSortVisualizer extends JFrame {
         controlPanel.add(startButton);
         controlPanel.add(resetButton);
         controlPanel.add(customInputButton);
-        controlPanel.add(backButton); // Add this line
+        controlPanel.add(backButton);
+        controlPanel.add(pauseButton);
         controlPanel.add(Box.createHorizontalStrut(30));
 
         speedLabel = new JLabel("Animation Speed:");
@@ -261,6 +265,12 @@ public class QuickSortVisualizer extends JFrame {
             }
         });
 
+        pauseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                pauseQuickSort();
+            }
+        });
+
         // FIX: Create timer with dynamic delay based on speed slider
         animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -329,6 +339,7 @@ public class QuickSortVisualizer extends JFrame {
 
     void resetSortingVariables() {
         isAnimating = false;
+        isPaused = false;
         currentLow = 0;
         currentHigh = arraySize - 1;
         pivotIndex = -1;
@@ -358,6 +369,9 @@ public class QuickSortVisualizer extends JFrame {
         startButton.setText("Start Quick Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setText("Pause");
+        pauseButton.setEnabled(false);
+        pauseButton.setBackground(new Color(255, 165, 0));
     }
 
     void showCustomInputDialog() {
@@ -448,9 +462,11 @@ public class QuickSortVisualizer extends JFrame {
         if (isAnimating) return;
 
         isAnimating = true;
+        isPaused = false;
         startButton.setText("⏸ Sorting...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
+        pauseButton.setEnabled(true);
 
         // FIX: Update timer delay when starting animation
         animationTimer.setDelay(getAnimationDelay());
@@ -469,7 +485,25 @@ public class QuickSortVisualizer extends JFrame {
                 "Starting with the entire array...");
     }
 
+    void pauseQuickSort() {
+        if (isAnimating) {
+            if (isPaused) {
+                isPaused = false;
+                animationTimer.start();
+                pauseButton.setText("Pause");
+                statusLabel.setText("<html><center>Resumed Quick Sort...<br>Using " + currentPivotMode + " strategy</center></html>");
+            } else {
+                isPaused = true;
+                animationTimer.stop();
+                pauseButton.setText("Resume");
+                statusLabel.setText("<html><center>Paused Quick Sort...<br>Click Resume to continue</center></html>");
+            }
+        }
+    }
+
     void performQuickSortStep() {
+        if (isPaused) return;
+
         currentStep++;
         stepLabel.setText("Step: " + currentStep + " / " + totalSteps);
 
@@ -479,6 +513,7 @@ public class QuickSortVisualizer extends JFrame {
             isAnimating = false;
             startButton.setText("Completed");
             startButton.setBackground(new Color(46, 204, 113));
+            pauseButton.setEnabled(false);
             statusLabel.setText("<html><center>Quick Sort Complete!<br>Array is now sorted!</center></html>");
             updateExplanation("QUICK SORT COMPLETED!\n\n" +
                     "Congratulations! The quick sort algorithm has successfully sorted the array.\n\n" +
