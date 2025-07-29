@@ -8,7 +8,8 @@ public class PrimeNumberVisualizer extends JFrame {
     // GUI Components
     JPanel mainPanel, controlPanel, visualizationPanel, resultsPanel;
     JScrollPane visualizationScrollPane, resultsScrollPane;
-    JButton startButton, resetButton, switchModeButton;
+    JButton startButton, resetButton, switchModeButton, pauseButton;
+    boolean isPaused = false;
     JTextField lowerBoundField, upperBoundField, singleNumberField;
     JLabel modeLabel, statusLabel, performanceLabel;
     JLabel rangeFromLabel, rangeToLabel, singleNumberLabel;
@@ -249,22 +250,26 @@ public class PrimeNumberVisualizer extends JFrame {
         JPanel buttonSection = createSection("Actions");
 
         startButton = createCompactButton("Start Analysis", new Color(46, 204, 113));
-        startButton.addActionListener(e -> startAnalysis());
-
         resetButton = createCompactButton("Reset", new Color(52, 152, 219));
-        resetButton.addActionListener(e -> resetVisualization());
+        pauseButton = createCompactButton("Pause", new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
 
-        // In the Action Buttons Section, add back button after resetButton
+        buttonSection.add(startButton);
+        buttonSection.add(Box.createVerticalStrut(5));
+        buttonSection.add(resetButton);
+        buttonSection.add(Box.createVerticalStrut(5));
+        buttonSection.add(pauseButton);
+        buttonSection.add(Box.createVerticalStrut(5));
         JButton backButton = createCompactButton("Back to Hub", new Color(100, 149, 237));
         backButton.addActionListener(e -> {
             if (animationTimer != null) animationTimer.stop();
             dispose(); // Close this window
         });
 
-        buttonSection.add(startButton);
-        buttonSection.add(Box.createVerticalStrut(5));
-        buttonSection.add(resetButton);
-        buttonSection.add(Box.createVerticalStrut(5));
+        startButton.addActionListener(e -> startAnalysis());
+        resetButton.addActionListener(e -> resetVisualization());
+        pauseButton.addActionListener(e -> togglePause());
+
         buttonSection.add(backButton); // Add this line
 
         // Add all sections to control panel
@@ -595,8 +600,12 @@ public class PrimeNumberVisualizer extends JFrame {
         }
 
         isAnimating = true;
+        isPaused = false;
         startButton.setText("Analyzing...");
         startButton.setEnabled(false);
+        pauseButton.setEnabled(true);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
         startTime = System.currentTimeMillis();
 
@@ -619,9 +628,13 @@ public class PrimeNumberVisualizer extends JFrame {
         }
 
         isAnimating = false;
+        isPaused = false;
         startButton.setText("Start Analysis");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
         if (isMode1) {
             initializeMode1();
@@ -828,10 +841,14 @@ public class PrimeNumberVisualizer extends JFrame {
     void completeAnalysis() {
         animationTimer.stop();
         isAnimating = false;
+        isPaused = false;
         endTime = System.currentTimeMillis();
 
         startButton.setText("Completed");
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
         if (isMode1) {
             Collections.sort(foundPrimes);
@@ -910,6 +927,28 @@ public class PrimeNumberVisualizer extends JFrame {
         highlightedIndex = -1;
         markingIndex = -1;
         visualizationPanel.repaint();
+    }
+
+    void togglePause() {
+        if (!isAnimating) return;
+
+        isPaused = !isPaused;
+
+        if (isPaused) {
+            animationTimer.stop();
+            pauseButton.setText("Resume");
+            pauseButton.setBackground(new Color(46, 204, 113));
+            statusLabel.setText("<html><center>⏸️ Analysis Paused<br>Click Resume to continue</center></html>");
+        } else {
+            animationTimer.start();
+            pauseButton.setText("Pause");
+            pauseButton.setBackground(new Color(255, 165, 0));
+            if (isMode1) {
+                statusLabel.setText("<html><center>▶️ Analysis Resumed<br>Finding primes...</center></html>");
+            } else {
+                statusLabel.setText("<html><center>▶️ Analysis Resumed<br>Checking " + targetNumber + "</center></html>");
+            }
+        }
     }
 
     void drawRangeVisualization(Graphics2D g2d) {
