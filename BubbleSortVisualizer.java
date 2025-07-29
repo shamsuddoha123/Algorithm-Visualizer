@@ -9,7 +9,7 @@ public class BubbleSortVisualizer extends JFrame {
     int arraySize;
     JPanel arrayPanel, explanationPanel;
     JScrollPane arrayScrollPane, explanationScrollPane;
-    JButton startButton, resetButton, customInputButton;
+    JButton startButton, resetButton, customInputButton, pauseButton;
     JSlider speedSlider;
     JLabel speedLabel, statusLabel, stepLabel, passLabel;
     JTextArea explanationArea;
@@ -41,6 +41,8 @@ public class BubbleSortVisualizer extends JFrame {
     double targetBubble2X = 0, targetBubble2Y = 0;
     double animationProgress = 0.0;
     boolean needsSwap = false;
+
+    boolean isPaused = false;
 
     // Colors
     Color defaultColor = new Color(135, 206, 250); // Light sky blue
@@ -107,6 +109,8 @@ public class BubbleSortVisualizer extends JFrame {
         startButton = createStyledButton("Start Bubble Sort", new Color(50, 205, 50));
         resetButton = createStyledButton("Reset Array", new Color(70, 130, 180));
         customInputButton = createStyledButton("Custom Input", new Color(138, 43, 226));
+        pauseButton = createStyledButton("Pause", new Color(255, 165, 0));
+        pauseButton.setEnabled(false); // Initially disabled
 
         // Add back button after resetButton
         JButton backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
@@ -120,7 +124,8 @@ public class BubbleSortVisualizer extends JFrame {
         controlPanel.add(startButton);
         controlPanel.add(resetButton);
         controlPanel.add(customInputButton);
-        controlPanel.add(backButton); // Add this line
+        controlPanel.add(pauseButton);
+        controlPanel.add(backButton);
         controlPanel.add(Box.createHorizontalStrut(30));
 
         speedLabel = new JLabel("Animation Speed:");
@@ -264,6 +269,12 @@ public class BubbleSortVisualizer extends JFrame {
             }
         });
 
+        pauseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                togglePause();
+            }
+        });
+
         // FIX: Create timer with dynamic delay based on speed slider
         animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -362,6 +373,10 @@ public class BubbleSortVisualizer extends JFrame {
         startButton.setText("Start Bubble Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(50, 205, 50));
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
+        isPaused = false;
     }
 
     void showCustomInputDialog() {
@@ -425,9 +440,13 @@ public class BubbleSortVisualizer extends JFrame {
         if (isAnimating) return;
 
         isAnimating = true;
+        isPaused = false;
         startButton.setText("Bubbling...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(255, 69, 0));
+        pauseButton.setEnabled(true);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
         // FIX: Update timer delay when starting animation
         animationTimer.setDelay(getAnimationDelay());
@@ -507,6 +526,10 @@ public class BubbleSortVisualizer extends JFrame {
                     isAnimating = false;
                     startButton.setText("Completed");
                     startButton.setBackground(new Color(50, 205, 50));
+                    pauseButton.setEnabled(false);
+                    pauseButton.setText("Pause");
+                    pauseButton.setBackground(new Color(255, 165, 0));
+                    isPaused = false;
                     statusLabel.setText("<html><center>Bubble Sort Complete!<br>All bubbles are sorted!<br><br>Comparisons: " +
                             comparisons + " | Swaps: " + swaps + "</center></html>");
                     updateExplanation("BUBBLE SORT COMPLETED!\n\n" +
@@ -832,6 +855,24 @@ public class BubbleSortVisualizer extends JFrame {
     void updateExplanation(String text) {
         explanationArea.setText(text);
         explanationArea.setCaretPosition(0);
+    }
+
+    void togglePause() {
+        if (!isAnimating) return;
+
+        isPaused = !isPaused;
+
+        if (isPaused) {
+            animationTimer.stop();
+            pauseButton.setText("Resume");
+            pauseButton.setBackground(new Color(46, 204, 113));
+            statusLabel.setText("<html><center>⏸️ Animation Paused<br>Click Resume to continue</center></html>");
+        } else {
+            animationTimer.start();
+            pauseButton.setText("Pause");
+            pauseButton.setBackground(new Color(255, 165, 0));
+            statusLabel.setText("<html><center>▶️ Animation Resumed<br>Bubbles are floating up...</center></html>");
+        }
     }
 
     public static void main(String[] args) {
