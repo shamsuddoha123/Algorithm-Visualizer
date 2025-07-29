@@ -6,12 +6,13 @@ public class SortingVisualizerApp extends JFrame {
     int[] array;
     int arraySize;
     JPanel arrayPanel, explanationPanel;
-    JButton startButton, resetButton, customInputButton;
+    JButton startButton, resetButton, customInputButton, pauseButton;
     JSlider speedSlider;
     JLabel speedLabel, statusLabel, stepLabel;
     JTextArea explanationArea;
     JTabbedPane algorithmTabs;
     Timer animationTimer;
+    boolean isPaused = false;
 
     // Algorithm selection
     String currentAlgorithm = "Insertion Sort";
@@ -108,6 +109,8 @@ public class SortingVisualizerApp extends JFrame {
         startButton = createStyledButton("Start Sort", new Color(46, 204, 113));
         resetButton = createStyledButton("Reset", new Color(52, 152, 219));
         customInputButton = createStyledButton("Custom Input", new Color(155, 89, 182));
+        pauseButton = createStyledButton("Pause", new Color(255, 165, 0));
+        pauseButton.setEnabled(false);
 
         // Add back button after customInputButton
         JButton backButton = createStyledButton("Back to Hub", new Color(100, 149, 237));
@@ -121,7 +124,8 @@ public class SortingVisualizerApp extends JFrame {
         controlPanel.add(startButton);
         controlPanel.add(resetButton);
         controlPanel.add(customInputButton);
-        controlPanel.add(backButton); // Add this line
+        controlPanel.add(backButton);
+        controlPanel.add(pauseButton);
         controlPanel.add(Box.createHorizontalStrut(20));
 
         speedLabel = new JLabel("Animation Speed:");
@@ -227,9 +231,16 @@ public class SortingVisualizerApp extends JFrame {
             }
         });
 
-        // FIX: Create timer with dynamic delay based on speed slider
+        pauseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                togglePause();
+            }
+        });
+
+        // Create timer with dynamic delay based on speed slider
         animationTimer = new Timer(getAnimationDelay(), new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                if (isPaused) return;
                 if (currentAlgorithm.equals("Insertion Sort")) {
                     performInsertionSortStep();
                 } else {
@@ -238,7 +249,7 @@ public class SortingVisualizerApp extends JFrame {
             }
         });
 
-        // FIX: Add change listener to speed slider to update timer delay in real-time
+        // Add change listener to speed slider to update timer delay in real-time
         speedSlider.addChangeListener(e -> {
             if (animationTimer != null) {
                 animationTimer.setDelay(getAnimationDelay());
@@ -251,7 +262,7 @@ public class SortingVisualizerApp extends JFrame {
         setVisible(true);
     }
 
-    // FIX: Add method to calculate animation delay based on slider value
+    // Add method to calculate animation delay based on slider value
     private int getAnimationDelay() {
         // Convert slider value (1-10) to delay (1000ms-100ms)
         // Higher slider value = faster animation = lower delay
@@ -327,6 +338,7 @@ public class SortingVisualizerApp extends JFrame {
         isAnimating = false;
         animationStep = 0;
         currentStep = 0;
+        isPaused = false;
 
         statusLabel.setText("Ready to sort - Select an algorithm and click 'Start Sort'!");
         stepLabel.setText("Step: 0 / " + totalSteps);
@@ -340,6 +352,10 @@ public class SortingVisualizerApp extends JFrame {
         startButton.setText("Start Sort");
         startButton.setEnabled(true);
         startButton.setBackground(new Color(46, 204, 113));
+        pauseButton.setText("Pause");
+        pauseButton.setEnabled(false);
+        pauseButton.setBackground(new Color(255, 165, 0));
+        isPaused = false;
     }
 
     void showCustomInputDialog() {
@@ -379,7 +395,6 @@ public class SortingVisualizerApp extends JFrame {
                 array = new int[arraySize];
                 for (int i = 0; i < arraySize; i++) {
                     array[i] = Integer.parseInt(elements[i]);
-                    // FIX: Allow 0 and negative numbers, adjust range
                     if (array[i] < -999 || array[i] > 999) {
                         JOptionPane.showMessageDialog(this, "❌ Numbers must be between -999 and 999");
                         return;
@@ -400,11 +415,15 @@ public class SortingVisualizerApp extends JFrame {
         if (isAnimating) return;
 
         isAnimating = true;
-        startButton.setText("⏸ Sorting...");
+        isPaused = false;
+        startButton.setText("Sorting...");
         startButton.setEnabled(false);
         startButton.setBackground(new Color(231, 76, 60));
+        pauseButton.setEnabled(true);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
 
-        // FIX: Update timer delay when starting animation
+        // Update timer delay when starting animation
         animationTimer.setDelay(getAnimationDelay());
         animationTimer.start();
 
@@ -418,6 +437,26 @@ public class SortingVisualizerApp extends JFrame {
             updateExplanation("SELECTION SORT STARTED!\n\n" +
                     "Selection sort works by finding the minimum element in the unsorted portion and swapping it " +
                     "with the first element of the unsorted portion. We'll repeat this process for each position.");
+        }
+    }
+
+    void togglePause() {
+        if (!isAnimating) return;
+
+        if (isPaused) {
+            // Resume
+            isPaused = false;
+            animationTimer.start();
+            pauseButton.setText("Pause");
+            pauseButton.setBackground(new Color(255, 165, 0));
+            statusLabel.setText("Resuming " + currentAlgorithm + " algorithm...");
+        } else {
+            // Pause
+            isPaused = true;
+            animationTimer.stop();
+            pauseButton.setText("Resume");
+            pauseButton.setBackground(new Color(46, 204, 113));
+            statusLabel.setText("Sorting paused - Click 'Resume' to continue.");
         }
     }
 
@@ -551,8 +590,13 @@ public class SortingVisualizerApp extends JFrame {
     void completeSorting() {
         animationTimer.stop();
         isAnimating = false;
+        isPaused = false;
         startButton.setText("✅ Completed");
         startButton.setBackground(new Color(46, 204, 113));
+        startButton.setEnabled(false);
+        pauseButton.setEnabled(false);
+        pauseButton.setText("Pause");
+        pauseButton.setBackground(new Color(255, 165, 0));
         statusLabel.setText(currentAlgorithm + " completed successfully!");
         updateExplanation("SORTING COMPLETED!\n\n" +
                 "Congratulations! The " + currentAlgorithm.toLowerCase() + " algorithm has successfully sorted the array. " +
